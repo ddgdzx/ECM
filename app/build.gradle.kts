@@ -5,6 +5,11 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// CI 可通过环境变量覆盖版本号与签名信息；本地开发不设时走默认值 + debug 签名。
+val ciVersionCode = System.getenv("ECM_VERSION_CODE")?.toIntOrNull() ?: 1
+val ciVersionName = System.getenv("ECM_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0"
+val releaseKeystore = System.getenv("ECM_KEYSTORE_FILE")?.takeIf { it.isNotBlank() }
+
 android {
     namespace = "com.ecm.inventory"
     compileSdk = 34
@@ -13,14 +18,27 @@ android {
         applicationId = "com.ecm.inventory"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = ciVersionCode
+        versionName = ciVersionName
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("ECM_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ECM_KEY_ALIAS")
+                keyPassword = System.getenv("ECM_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // 没配 keystore 时退回 debug 签名，保证 release 包也能直接装上试用。
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

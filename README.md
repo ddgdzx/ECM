@@ -29,6 +29,44 @@ echo "sdk.dir=/path/to/android-sdk" > local.properties
 
 首次启动会写入一份示例数据（1 个 3 层元件柜、1 个贴片盒、12 条元件记录），方便直接看到效果。
 
+## 自动出包（GitHub Actions）
+
+工作流 `.github/workflows/android.yml`：
+
+| 触发方式 | 结果 |
+| --- | --- |
+| 推送任意分支 / 提 PR | 编译 debug + release，APK 传到该次运行的 Artifacts（保留 30 天） |
+| 推 `v*` 标签（如 `v1.1`） | 同上，并自动创建 GitHub Release 把两个 APK 附上去 |
+| Actions 页面手动 Run workflow | 同分支构建 |
+
+版本号由 CI 注入：`versionName` 取标签名（无标签时为 `1.0-<短 sha>`），`versionCode` 取运行序号，
+对应 `app/build.gradle.kts` 里读取的 `ECM_VERSION_NAME` / `ECM_VERSION_CODE` 环境变量。
+
+### 配置正式签名（可选）
+
+不配置时 release 包会退回 debug 签名，能装能用，但不适合长期分发。配置步骤：
+
+```bash
+# 1. 本地生成 keystore（有效期 ~27 年）
+keytool -genkeypair -v -keystore release.jks -alias ecm \
+  -keyalg RSA -keysize 2048 -validity 10000
+
+# 2. 转成 base64
+base64 -w0 release.jks   # macOS 用 base64 -i release.jks
+```
+
+在仓库 Settings → Secrets and variables → Actions 添加 4 个 secret：
+
+| 名称 | 值 |
+| --- | --- |
+| `ECM_KEYSTORE_BASE64` | 上一步的 base64 内容 |
+| `ECM_KEYSTORE_PASSWORD` | keystore 密码 |
+| `ECM_KEY_ALIAS` | 别名，如 `ecm` |
+| `ECM_KEY_PASSWORD` | 私钥密码 |
+
+配好后 CI 会自动改用正式签名（keystore 本身不进仓库，只以 secret 形式存在）。
+本地想出正式包也一样，把这几个值设成环境变量即可（`ECM_KEYSTORE_FILE` 指向 jks 路径）。
+
 ## 代码结构
 
 ```
