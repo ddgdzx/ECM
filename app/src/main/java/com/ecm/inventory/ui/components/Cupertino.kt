@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -92,14 +94,22 @@ fun CupertinoNavBar(
                 .alpha(sepAlpha)
                 .background(colors.separator)
         )
-        Row(
+        // 三段式布局：左右按钮各自贴边，标题绝对居中并按可用宽度截断。
+        // 用 Row + weight 会因为标题实际宽度小于权重槽位而把右侧按钮往中间挤，
+        // 所以这里改用 Box 对齐。
+        BoxWithConstraints(
             Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 8.dp)
         ) {
-            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            // 标题左右各留出按钮区，窄屏时按比例收缩，避免和按钮重叠。
+            val sideReserve = (maxWidth * 0.28f).coerceIn(56.dp, 120.dp)
+
+            Row(
+                Modifier.align(Alignment.CenterStart),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 if (onBack != null) {
                     Row(
                         Modifier
@@ -121,14 +131,15 @@ fun CupertinoNavBar(
                 color = colors.label,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
                 modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = sideReserve)
                     .alpha(titleAlpha)
-                    .weight(2f, fill = false)
-                    .padding(horizontal = 4.dp)
             )
 
             Row(
-                Modifier.weight(1f),
+                Modifier.align(Alignment.CenterEnd),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) { trailing?.invoke(this) }

@@ -33,6 +33,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecm.inventory.data.Slot
+import com.ecm.inventory.ui.theme.AppleTheme
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -89,9 +90,9 @@ fun IsoStorageView(
     highlight: Slot? = null,
     focusLayer: Int? = null,
     exploded: Boolean = false,
-    emptyColor: Color = Color(0xFFD8D8DE),
-    frameColor: Color = Color(0xFFBFBFC7),
-    labelColor: Color = Color(0xFF3C3C43),
+    emptyColor: Color = if (AppleTheme.colors.isDark) Color(0xFF4C4C50) else Color(0xFFD8D8DE),
+    frameColor: Color = if (AppleTheme.colors.isDark) Color(0xFF5E5E63) else Color(0xFFC6C6CE),
+    labelColor: Color = AppleTheme.colors.label,
     camera: IsoCameraState = rememberIsoCamera(),
     interactive: Boolean = true,
     onSlotClick: ((Slot) -> Unit)? = null
@@ -277,9 +278,11 @@ private fun DrawScope.drawCabinet(
         return out
     }
 
-    // 底座
+    // 底座。它是块横跨整个容器的大板子，用中心点深度排序会排到远处格口的后面，
+    // 把远端那一排格口盖住（表现为"角上缺一块"）。相机始终在水平面之上（tilt > 0），
+    // 底座作为地板永远不会遮挡格口，所以固定第一个画。
     val baseFaces = boxFaces(-0.3f, cols + 0.3f, -0.3f, rows + 0.3f, -0.32f, -0.04f, frameColor)
-    val baseDepth = depthOf(cx, cy, -0.18f)
+    val baseDepth = Float.NEGATIVE_INFINITY
 
     class BoxItem(
         val slot: Slot?,

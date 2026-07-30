@@ -226,10 +226,6 @@ class EcmViewModel(private val repo: EcmRepository) : ViewModel() {
 
     fun locationById(id: Long): LocationEntity? = locations.value.firstOrNull { it.id == id }
 
-    fun seed() {
-        viewModelScope.launch { repo.seedIfEmpty() }
-    }
-
     companion object {
         fun factory(app: EcmApp): ViewModelProvider.Factory = viewModelFactory {
             initializer { EcmViewModel(app.repository) }

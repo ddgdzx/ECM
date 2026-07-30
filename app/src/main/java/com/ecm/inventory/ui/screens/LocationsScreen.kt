@@ -151,9 +151,6 @@ private fun LocationCard(
                 cols = location.cols,
                 bins = bins,
                 interactive = false,
-                emptyColor = if (colors.isDark) Color(0xFF3A3A3C) else Color(0xFFDCDCE2),
-                frameColor = if (colors.isDark) Color(0xFF48484A) else Color(0xFFC6C6CE),
-                labelColor = colors.label,
                 modifier = Modifier.fillMaxSize()
             )
         }

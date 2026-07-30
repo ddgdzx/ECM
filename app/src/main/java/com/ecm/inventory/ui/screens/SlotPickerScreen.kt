@@ -159,9 +159,6 @@ fun SlotPickerScreen(
                                 highlight = slot,
                                 exploded = exploded,
                                 camera = camera,
-                                emptyColor = if (colors.isDark) Color(0xFF3A3A3C) else Color(0xFFD8D8DE),
-                                frameColor = if (colors.isDark) Color(0xFF48484A) else Color(0xFFC6C6CE),
-                                labelColor = colors.label,
                                 onSlotClick = { s -> slot = s },
                                 modifier = Modifier.fillMaxSize()
                             )

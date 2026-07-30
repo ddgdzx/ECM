@@ -131,9 +131,6 @@ fun LocationDetailScreen(
                             focusLayer = focusLayer,
                             exploded = exploded,
                             camera = camera,
-                            emptyColor = if (colors.isDark) Color(0xFF3A3A3C) else Color(0xFFD8D8DE),
-                            frameColor = if (colors.isDark) Color(0xFF48484A) else Color(0xFFC6C6CE),
-                            labelColor = colors.label,
                             onSlotClick = { slot -> selected = if (selected == slot) null else slot },
                             modifier = Modifier.fillMaxSize()
                         )

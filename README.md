@@ -27,7 +27,7 @@ echo "sdk.dir=/path/to/android-sdk" > local.properties
 # 产物：app/build/outputs/apk/debug/app-debug.apk
 ```
 
-首次启动会写入一份示例数据（1 个 3 层元件柜、1 个贴片盒、12 条元件记录），方便直接看到效果。
+首次安装后库存为空，从"存储位置"新建容器、再到"元件库"添加元件即可。
 
 ## 自动出包（GitHub Actions）
 

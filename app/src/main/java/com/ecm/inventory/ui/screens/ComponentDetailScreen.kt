@@ -163,9 +163,6 @@ fun ComponentDetailScreen(
                                 }.toMap(),
                                 highlight = component.slot,
                                 camera = camera,
-                                emptyColor = if (colors.isDark) androidx.compose.ui.graphics.Color(0xFF3A3A3C) else androidx.compose.ui.graphics.Color(0xFFD8D8DE),
-                                frameColor = if (colors.isDark) androidx.compose.ui.graphics.Color(0xFF48484A) else androidx.compose.ui.graphics.Color(0xFFC3C3CB),
-                                labelColor = colors.label,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
