@@ -1,0 +1,116 @@
+name: Build iOS
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+    paths-ignore:
+      - "**.md"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: ios
+
+jobs:
+  build:
+    name: 构建 iOS
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 计算版本号
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            NAME="${GITHUB_REF#refs/tags/v}"
+          else
+            NAME="1.0-$(git rev-parse --short HEAD)"
+          fi
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "code=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      # 模拟器构建不需要签名，用来验证代码能编过。
+      - name: 编译（模拟器）
+        run: |
+          xcodebuild build \
+            -project ECM.xcodeproj \
+            -scheme ECM \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/dd-sim \
+            -quiet \
+            MARKETING_VERSION="${{ steps.version.outputs.name }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.code }}" \
+            CODE_SIGNING_ALLOWED=NO
+
+      # 真机包：仓库里没有开发者证书，所以出的是未签名 ipa。
+      # 想直接装到自己手机上，用 Xcode 打开工程、选自己的 Apple ID 直接 Run 最省事。
+      - name: 构建未签名 ipa
+        run: |
+          xcodebuild build \
+            -project ECM.xcodeproj \
+            -scheme ECM \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/dd-device \
+            -quiet \
+            MARKETING_VERSION="${{ steps.version.outputs.name }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.code }}" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          APP="build/dd-device/Build/Products/Release-iphoneos/ECM.app"
+          test -d "$APP"
+          V="${{ steps.version.outputs.name }}"
+          mkdir -p dist Payload
+          cp -R "$APP" Payload/
+          zip -qry "dist/ecm-${V}-unsigned.ipa" Payload
+          rm -rf Payload
+
+      - name: 整理产物
+        run: |
+          V="${{ steps.version.outputs.name }}"
+          {
+            echo "## iOS 构建产物"
+            echo ""
+            echo "版本 \`${V}\` · build \`${{ steps.version.outputs.code }}\`"
+            echo ""
+            echo "| 文件 | 大小 |"
+            echo "| --- | --- |"
+            for f in dist/*.ipa; do
+              echo "| $(basename "$f") | $(du -h "$f" | cut -f1) |"
+            done
+            echo ""
+            echo "> ipa 未签名。想装到自己手机上，最省事的方式是用 Xcode 打开 \`ios/ECM.xcodeproj\`，"
+            echo "> 选好自己的 Apple ID 后直接 Run。"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上传到 Actions 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecm-ios-${{ steps.version.outputs.name }}
+          path: ios/dist/*.ipa
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: 打 tag 时发布 Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          # 安卓工作流可能已经先建好了同一个 Release，这时改成往上追加文件。
+          gh release create "$TAG" dist/*.ipa \
+            --title "元件库 $TAG" \
+            --generate-notes \
+          || gh release upload "$TAG" dist/*.ipa --clobber

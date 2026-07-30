@@ -16,6 +16,10 @@ concurrency:
 permissions:
   contents: write
 
+defaults:
+  run:
+    working-directory: android
+
 jobs:
   build:
     name: 构建 APK
@@ -36,6 +40,8 @@ jobs:
 
       - name: 配置 Gradle（含缓存）
         uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: android
 
       - name: 计算版本号
         id: version
@@ -74,7 +80,7 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk "dist/ecm-${V}-debug.apk"
           cp app/build/outputs/apk/release/app-release.apk "dist/ecm-${V}-release.apk"
           {
-            echo "## 构建产物"
+            echo "## 安卓构建产物"
             echo ""
             echo "版本 \`${V}\` · versionCode \`${{ steps.version.outputs.code }}\`"
             echo ""
@@ -93,7 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ecm-apk-${{ steps.version.outputs.name }}
-          path: dist/*.apk
+          path: android/dist/*.apk
           retention-days: 30
           if-no-files-found: error
 
@@ -102,6 +108,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${GITHUB_REF#refs/tags/}" dist/*.apk \
-            --title "元件库 ${GITHUB_REF#refs/tags/}" \
-            --generate-notes
+          TAG="${GITHUB_REF#refs/tags/}"
+          # iOS 工作流可能已经先建好了同一个 Release，这时改成往上追加文件。
+          gh release create "$TAG" dist/*.apk \
+            --title "元件库 $TAG" \
+            --generate-notes \
+          || gh release upload "$TAG" dist/*.apk --clobber

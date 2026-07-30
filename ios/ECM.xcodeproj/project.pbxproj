@@ -1,0 +1,375 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		000000000000000000000102 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000101 /* Models.swift */; };
+		000000000000000000000104 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000103 /* Persistence.swift */; };
+		000000000000000000000106 /* EcmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000105 /* EcmViewModel.swift */; };
+		000000000000000000000109 /* Cupertino.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000108 /* Cupertino.swift */; };
+		00000000000000000000010B /* ComponentSymbol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000010A /* ComponentSymbol.swift */; };
+		00000000000000000000010E /* IsoStorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000010D /* IsoStorageView.swift */; };
+		000000000000000000000111 /* InventoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000110 /* InventoryScreen.swift */; };
+		000000000000000000000113 /* ComponentDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000112 /* ComponentDetailScreen.swift */; };
+		000000000000000000000115 /* ComponentEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000114 /* ComponentEditScreen.swift */; };
+		000000000000000000000117 /* SlotPickerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000116 /* SlotPickerScreen.swift */; };
+		000000000000000000000119 /* LocationsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000118 /* LocationsScreen.swift */; };
+		00000000000000000000011B /* LocationDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000011A /* LocationDetailScreen.swift */; };
+		00000000000000000000011D /* LocationEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000011C /* LocationEditScreen.swift */; };
+		00000000000000000000011F /* StatsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000011E /* StatsScreen.swift */; };
+		000000000000000000000122 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000121 /* Theme.swift */; };
+		000000000000000000000124 /* EcmRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000123 /* EcmRootView.swift */; };
+		000000000000000000000127 /* ECMApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000126 /* ECMApp.swift */; };
+		000000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000010 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		000000000000000000000003 /* ECM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ECM.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000101 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		000000000000000000000103 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		000000000000000000000105 /* EcmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcmViewModel.swift; sourceTree = "<group>"; };
+		000000000000000000000108 /* Cupertino.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cupertino.swift; sourceTree = "<group>"; };
+		00000000000000000000010A /* ComponentSymbol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSymbol.swift; sourceTree = "<group>"; };
+		00000000000000000000010D /* IsoStorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsoStorageView.swift; sourceTree = "<group>"; };
+		000000000000000000000110 /* InventoryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000112 /* ComponentDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentDetailScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000114 /* ComponentEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentEditScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000116 /* SlotPickerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlotPickerScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000118 /* LocationsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationsScreen.swift; sourceTree = "<group>"; };
+		00000000000000000000011A /* LocationDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationDetailScreen.swift; sourceTree = "<group>"; };
+		00000000000000000000011C /* LocationEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationEditScreen.swift; sourceTree = "<group>"; };
+		00000000000000000000011E /* StatsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsScreen.swift; sourceTree = "<group>"; };
+		000000000000000000000121 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		000000000000000000000123 /* EcmRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcmRootView.swift; sourceTree = "<group>"; };
+		000000000000000000000126 /* ECMApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECMApp.swift; sourceTree = "<group>"; };
+		000000000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		000000000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		000000000000000000000004 = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000006 /* ECM */,
+				000000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		000000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000003 /* ECM.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000000107 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000101 /* Models.swift */,
+				000000000000000000000103 /* Persistence.swift */,
+				000000000000000000000105 /* EcmViewModel.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		00000000000000000000010C /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000108 /* Cupertino.swift */,
+				00000000000000000000010A /* ComponentSymbol.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		00000000000000000000010F /* Iso */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000010D /* IsoStorageView.swift */,
+			);
+			path = Iso;
+			sourceTree = "<group>";
+		};
+		000000000000000000000120 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000110 /* InventoryScreen.swift */,
+				000000000000000000000112 /* ComponentDetailScreen.swift */,
+				000000000000000000000114 /* ComponentEditScreen.swift */,
+				000000000000000000000116 /* SlotPickerScreen.swift */,
+				000000000000000000000118 /* LocationsScreen.swift */,
+				00000000000000000000011A /* LocationDetailScreen.swift */,
+				00000000000000000000011C /* LocationEditScreen.swift */,
+				00000000000000000000011E /* StatsScreen.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		000000000000000000000125 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000010C /* Components */,
+				00000000000000000000010F /* Iso */,
+				000000000000000000000120 /* Screens */,
+				000000000000000000000121 /* Theme.swift */,
+				000000000000000000000123 /* EcmRootView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		000000000000000000000006 /* ECM */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000107 /* Data */,
+				000000000000000000000125 /* UI */,
+				000000000000000000000126 /* ECMApp.swift */,
+				000000000000000000000010 /* Assets.xcassets */,
+			);
+			path = ECM;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		000000000000000000000002 /* ECM */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000000000B /* Build configuration list for PBXNativeTarget "ECM" */;
+			buildPhases = (
+				000000000000000000000007 /* Sources */,
+				000000000000000000000008 /* Frameworks */,
+				000000000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ECM;
+			productName = ECM;
+			productReference = 000000000000000000000003 /* ECM.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		000000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					000000000000000000000002 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 00000000000000000000000A /* Build configuration list for PBXProject "ECM" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 000000000000000000000004;
+			productRefGroup = 000000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000002 /* ECM */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		000000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000011 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		000000000000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000102 /* Models.swift in Sources */,
+				000000000000000000000104 /* Persistence.swift in Sources */,
+				000000000000000000000106 /* EcmViewModel.swift in Sources */,
+				000000000000000000000109 /* Cupertino.swift in Sources */,
+				00000000000000000000010B /* ComponentSymbol.swift in Sources */,
+				00000000000000000000010E /* IsoStorageView.swift in Sources */,
+				000000000000000000000111 /* InventoryScreen.swift in Sources */,
+				000000000000000000000113 /* ComponentDetailScreen.swift in Sources */,
+				000000000000000000000115 /* ComponentEditScreen.swift in Sources */,
+				000000000000000000000117 /* SlotPickerScreen.swift in Sources */,
+				000000000000000000000119 /* LocationsScreen.swift in Sources */,
+				00000000000000000000011B /* LocationDetailScreen.swift in Sources */,
+				00000000000000000000011D /* LocationEditScreen.swift in Sources */,
+				00000000000000000000011F /* StatsScreen.swift in Sources */,
+				000000000000000000000122 /* Theme.swift in Sources */,
+				000000000000000000000124 /* EcmRootView.swift in Sources */,
+				000000000000000000000127 /* ECMApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		00000000000000000000000C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		00000000000000000000000D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		00000000000000000000000E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "\U5143\U4ef6\U5e93";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ecm.inventory;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		00000000000000000000000F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "\U5143\U4ef6\U5e93";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ecm.inventory;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00000000000000000000000A /* Build configuration list for PBXProject "ECM" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000000C /* Debug */,
+				00000000000000000000000D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000000000B /* Build configuration list for PBXNativeTarget "ECM" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000000E /* Debug */,
+				00000000000000000000000F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 000000000000000000000001 /* Project object */;
+}

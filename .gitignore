@@ -7,3 +7,12 @@ build/
 captures/
 .externalNativeBuild/
 .cxx/
+
+# iOS / Xcode
+DerivedData/
+xcuserdata/
+*.xcuserstate
+ios/build/
+ios/dist/
+*.ipa
+*.dSYM.zip
