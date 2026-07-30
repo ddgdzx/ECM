@@ -108,5 +108,8 @@ CI 里没有开发者证书，所以出的是**未签名 ipa**，只能配合自
 ## 环境说明
 
 安卓工程在 JDK 21 + Gradle 8.9 + AGP 8.5.2 + Kotlin 2.0.20 下编译通过（`:app:assembleDebug`）。
-iOS 工程是在 Linux 容器里移植的，没有 macOS 环境可跑 `xcodebuild`，首次编译请以
-Actions 上的 “Build iOS” 工作流结果为准；立体图的投影、遮挡与分层展开两端用的是同一套算法。
+iOS 工程是在 Linux 容器里移植的，编译验证走的是 Actions 上的 macOS runner：
+模拟器 Debug 与真机 Release 两个 target 都编过，未签名 ipa 也正常产出。
+
+两端都没有在真机/模拟器上做过界面走查，界面细节以实际运行为准。
+立体图的投影、遮挡与分层展开两端用的是同一套算法。
