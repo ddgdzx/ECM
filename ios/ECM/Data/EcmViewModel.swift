@@ -111,8 +111,10 @@ final class EcmViewModel: ObservableObject {
     private var editingComponent: ComponentEntity?
     private var editingLocation: LocationEntity?
 
-    init(repository: EcmRepository = EcmRepository()) {
-        self.repo = repository
+    // EcmRepository 是 @MainActor 的，默认值不能写在参数列表里（那里是非隔离上下文），
+    // 只能在同样受 MainActor 保护的 init 体内构造。
+    init(repository: EcmRepository? = nil) {
+        self.repo = repository ?? EcmRepository()
         reload()
     }
 
