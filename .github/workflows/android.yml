@@ -40,8 +40,6 @@ jobs:
 
       - name: 配置 Gradle（含缓存）
         uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: "FOR Android"
 
       - name: 计算版本号
         id: version
