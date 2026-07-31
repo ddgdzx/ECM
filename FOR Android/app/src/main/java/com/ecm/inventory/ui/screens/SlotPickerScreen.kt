@@ -61,7 +61,7 @@ fun SlotPickerScreen(
     var locationId by remember(locations) {
         mutableStateOf(draft.locationId ?: locations.firstOrNull()?.id)
     }
-    var slot by remember { mutableStateOf(draft.slot) }
+    var slots by remember { mutableStateOf(draft.slots.toSet()) }
     var exploded by remember(locationId) {
         mutableStateOf((locations.firstOrNull { it.id == locationId }?.layers ?: 1) > 1)
     }
@@ -69,8 +69,8 @@ fun SlotPickerScreen(
 
     val location = locations.firstOrNull { it.id == locationId }
     val occupants = components.filter { it.locationId == locationId && it.id != draft.id }
-    val bySlot = occupants.mapNotNull { c -> c.slot?.let { it to c } }.groupBy({ it.first }, { it.second })
-    val occupantsHere = slot?.let { bySlot[it].orEmpty() } ?: emptyList()
+    val bySlot = occupants.flatMap { c -> c.slots.map { it to c } }.groupBy({ it.first }, { it.second })
+    val occupantsHere = slots.flatMap { bySlot[it].orEmpty() }.distinctBy { it.id }
 
     Column(
         Modifier
@@ -86,9 +86,9 @@ fun SlotPickerScreen(
                 NavTextButton(
                     text = "完成",
                     bold = true,
-                    enabled = location != null,
+                    enabled = location != null && slots.isNotEmpty(),
                     onClick = {
-                        vm.updateComponentDraft { it.copy(locationId = locationId, slot = slot ?: Slot(0, 0, 0)) }
+                        vm.updateComponentDraft { it.copy(locationId = locationId, slots = slots.toList()) }
                         onBack()
                     }
                 )
@@ -128,7 +128,7 @@ fun SlotPickerScreen(
                                 selected = loc.id == locationId,
                                 onClick = {
                                     locationId = loc.id
-                                    slot = null
+                                    slots = emptySet()
                                 }
                             )
                         }
@@ -140,8 +140,8 @@ fun SlotPickerScreen(
             if (location != null) {
                 item {
                     InsetSection(
-                        header = "点选格口",
-                        footer = "浅色为空格口，彩色为已有元件。选中的格口会高亮显示。"
+                        header = "多选格口",
+                        footer = "点击可选择或取消格口；带 ✓ 的格口会一起分配给该元件。"
                     ) {
                         Box(
                             Modifier
@@ -155,11 +155,17 @@ fun SlotPickerScreen(
                                 cols = location.cols,
                                 bins = bySlot.mapValues { (_, list) ->
                                     BinStyle(fill = list.first().typeEnum.tint.copy(alpha = 0.75f), count = list.size)
+                                }.toMutableMap().apply {
+                                    slots.forEach { selected ->
+                                        this[selected] = BinStyle(fill = colors.accent, count = 1, label = "✓")
+                                    }
                                 },
-                                highlight = slot,
+                                highlight = slots.lastOrNull(),
                                 exploded = exploded,
                                 camera = camera,
-                                onSlotClick = { s -> slot = s },
+                                onSlotClick = { s ->
+                                    slots = if (s in slots) slots - s else slots + s
+                                },
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -184,13 +190,13 @@ fun SlotPickerScreen(
                     InsetSection(header = "已选择") {
                         SettingsRow(
                             title = location.name,
-                            value = slot?.label() ?: "未选择格口",
-                            valueColor = if (slot == null) colors.tertiaryLabel else colors.accent
+                            value = if (slots.isEmpty()) "未选择格口" else "已选择 ${slots.size} 个格口",
+                            valueColor = if (slots.isEmpty()) colors.tertiaryLabel else colors.accent
                         )
                         if (occupantsHere.isNotEmpty()) {
                             RowSeparator(startInset = 16.dp)
                             Text(
-                                "该格口已有：" + occupantsHere.joinToString("、") { it.displayTitle },
+                                "所选格口已有：" + occupantsHere.joinToString("、") { it.displayTitle },
                                 style = AppleText.footnote,
                                 color = colors.secondaryLabel,
                                 modifier = Modifier.padding(16.dp)
@@ -202,10 +208,10 @@ fun SlotPickerScreen(
                 item {
                     Box(Modifier.padding(horizontal = 16.dp)) {
                         FilledActionButton(
-                            text = "放到这里",
-                            enabled = slot != null,
+                            text = "分配到所选格口",
+                            enabled = slots.isNotEmpty(),
                             onClick = {
-                                vm.updateComponentDraft { it.copy(locationId = locationId, slot = slot) }
+                                vm.updateComponentDraft { it.copy(locationId = locationId, slots = slots.toList()) }
                                 onBack()
                             }
                         )

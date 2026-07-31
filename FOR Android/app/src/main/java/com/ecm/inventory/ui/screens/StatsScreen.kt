@@ -52,7 +52,9 @@ fun StatsScreen(
         .toList()
         .sortedByDescending { it.second }
     val maxTypeCount = byType.maxOfOrNull { it.second } ?: 1
-    val usedSlots = components.mapNotNull { c -> c.locationId?.let { Triple(it, c.layer, c.row * 1000 + c.col) } }.distinct().size
+    val usedSlots = components.flatMap { c ->
+        c.locationId?.let { id -> c.slots.map { Triple(id, it.layer, it.row * 1000 + it.col) } }.orEmpty()
+    }.distinct().size
     val totalSlots = locations.sumOf { it.slotCount }
 
     Column(

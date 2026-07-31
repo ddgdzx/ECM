@@ -28,7 +28,9 @@ struct StatsScreen: View {
         var keys = Set<String>()
         for c in components {
             guard let locationId = c.locationId else { continue }
-            keys.insert("\(locationId)-\(c.layer)-\(c.row)-\(c.col)")
+            for slot in c.slots {
+                keys.insert("\(locationId)-\(slot.layer)-\(slot.row)-\(slot.col)")
+            }
         }
         return keys.count
     }

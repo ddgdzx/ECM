@@ -66,8 +66,9 @@ fun ComponentEditScreen(
     val location = draft.locationId?.let { id -> locations.firstOrNull { it.id == id } }
     val locationText = when {
         location == null -> "未分配"
-        draft.slot == null -> location.name
-        else -> "${location.name} · ${draft.slot!!.label()}"
+        draft.slots.isEmpty() -> location.name
+        draft.slots.size == 1 -> "${location.name} · ${draft.slots.first().label()}"
+        else -> "${location.name} · ${draft.slots.size} 个格口"
     }
 
     Column(
@@ -173,7 +174,7 @@ fun ComponentEditScreen(
             }
 
             item {
-                InsetSection(header = "存放位置", footer = "在立体示意图上点选格口即可完成分配。") {
+                InsetSection(header = "存放位置", footer = "在立体示意图上可点选一个或多个格口。") {
                     SettingsRow(
                         title = "位置",
                         value = locationText,
@@ -186,7 +187,7 @@ fun ComponentEditScreen(
                         SettingsRow(
                             title = "清除位置",
                             titleColor = colors.red,
-                            onClick = { vm.updateComponentDraft { it.copy(locationId = null, slot = null) } }
+                            onClick = { vm.updateComponentDraft { it.copy(locationId = null, slots = emptyList()) } }
                         )
                     }
                 }

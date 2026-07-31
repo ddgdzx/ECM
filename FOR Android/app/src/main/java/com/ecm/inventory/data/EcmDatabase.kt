@@ -10,6 +10,8 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Update
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,6 +25,12 @@ interface ComponentDao {
 
     @Query("SELECT * FROM components WHERE locationId = :locationId")
     fun observeByLocation(locationId: Long): Flow<List<ComponentEntity>>
+
+    @Query("SELECT * FROM components WHERE locationId = :locationId")
+    suspend fun findByLocation(locationId: Long): List<ComponentEntity>
+
+    @Query("SELECT * FROM components WHERE id = :id")
+    suspend fun findById(id: Long): ComponentEntity?
 
     @Query("SELECT COUNT(*) FROM components")
     suspend fun count(): Int
@@ -40,7 +48,7 @@ interface ComponentDao {
     suspend fun setQuantity(id: Long, quantity: Int, now: Long = System.currentTimeMillis())
 
     /** 位置被删除后，把里面的元件标记为“未分配”。 */
-    @Query("UPDATE components SET locationId = NULL WHERE locationId = :locationId")
+    @Query("UPDATE components SET locationId = NULL, slotsData = '' WHERE locationId = :locationId")
     suspend fun detachFromLocation(locationId: Long)
 
     /** 容器缩小后，把落在范围外的元件移出格口。 */
@@ -49,6 +57,18 @@ interface ComponentDao {
             "AND (layer >= :layers OR row >= :rows OR col >= :cols)"
     )
     suspend fun detachOutOfRange(locationId: Long, layers: Int, rows: Int, cols: Int)
+}
+
+@Dao
+interface ConsumptionDao {
+    @Query("SELECT * FROM consumption_records ORDER BY consumedAt DESC")
+    fun observeAll(): Flow<List<ConsumptionEntity>>
+
+    @Insert
+    suspend fun insert(item: ConsumptionEntity): Long
+
+    @Query("DELETE FROM consumption_records WHERE componentId = :componentId")
+    suspend fun deleteByComponent(componentId: Long)
 }
 
 @Dao
@@ -74,14 +94,15 @@ interface LocationDao {
 }
 
 @Database(
-    entities = [ComponentEntity::class, LocationEntity::class],
-    version = 1,
+    entities = [ComponentEntity::class, LocationEntity::class, ConsumptionEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class EcmDatabase : RoomDatabase() {
 
     abstract fun componentDao(): ComponentDao
     abstract fun locationDao(): LocationDao
+    abstract fun consumptionDao(): ConsumptionDao
 
     companion object {
         @Volatile
@@ -92,7 +113,21 @@ abstract class EcmDatabase : RoomDatabase() {
                 context.applicationContext,
                 EcmDatabase::class.java,
                 "ecm.db"
-            ).fallbackToDestructiveMigration().build().also { instance = it }
+            ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+        }
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE components ADD COLUMN slotsData TEXT NOT NULL DEFAULT ''")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS consumption_records (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "componentId INTEGER NOT NULL, quantity INTEGER NOT NULL, " +
+                        "detail TEXT NOT NULL, consumedAt INTEGER NOT NULL, stockAfter INTEGER NOT NULL)"
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_consumption_records_componentId ON consumption_records(componentId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_consumption_records_consumedAt ON consumption_records(consumedAt)")
+            }
         }
     }
 }

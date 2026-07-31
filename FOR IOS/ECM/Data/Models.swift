@@ -130,6 +130,24 @@ struct Slot: Hashable {
         let rowName = String(UnicodeScalar(UInt8(65 + clamped)))
         return showLayer ? "\(layer + 1)层 \(rowName)\(col + 1)" : "\(rowName)\(col + 1)"
     }
+
+    var encoded: String { "\(layer),\(row),\(col)" }
+
+    static func decode(_ value: String) -> Slot? {
+        let parts = value.split(separator: ",").compactMap { Int($0) }
+        return parts.count == 3 ? Slot(parts[0], parts[1], parts[2]) : nil
+    }
+
+    static func encodeMany(_ slots: [Slot]) -> String {
+        Array(Set(slots)).sorted {
+            ($0.layer, $0.row, $0.col) < ($1.layer, $1.row, $1.col)
+        }.map(\.encoded).joined(separator: ";")
+    }
+
+    static func decodeMany(_ value: String) -> [Slot] {
+        Array(Set(value.split(separator: ";").compactMap { decode(String($0)) }))
+            .sorted { ($0.layer, $0.row, $0.col) < ($1.layer, $1.row, $1.col) }
+    }
 }
 
 /**
@@ -168,11 +186,17 @@ struct ComponentEntity: Identifiable, Hashable {
     var layer: Int = 0
     var row: Int = 0
     var col: Int = 0
+    var slotsData: String = ""
     var note: String = ""
     var updatedAt: Double = Date().timeIntervalSince1970 * 1000
 
     var typeEnum: ComponentType { ComponentType.of(type) }
-    var slot: Slot? { locationId == nil ? nil : Slot(layer, row, col) }
+    var slots: [Slot] {
+        guard locationId != nil else { return [] }
+        let decoded = Slot.decodeMany(slotsData)
+        return decoded.isEmpty ? [Slot(layer, row, col)] : decoded
+    }
+    var slot: Slot? { slots.first }
     var isLow: Bool { minQuantity > 0 && quantity <= minQuantity }
 
     /// 列表中显示的主标题：型号优先，没有型号时退回参数值。
@@ -188,6 +212,16 @@ struct ComponentEntity: Identifiable, Hashable {
     }
 }
 
+/// 一次元件消耗记录；保留用途、时间和扣减后的库存余量。
+struct ConsumptionEntity: Identifiable, Hashable {
+    var id: Int64 = 0
+    var componentId: Int64
+    var quantity: Int
+    var detail: String
+    var consumedAt: Double = Date().timeIntervalSince1970 * 1000
+    var stockAfter: Int
+}
+
 /// 元件 + 其所在位置名称，用于列表展示。
 struct ComponentWithLocation: Identifiable, Hashable {
     var component: ComponentEntity
@@ -196,8 +230,10 @@ struct ComponentWithLocation: Identifiable, Hashable {
     var id: Int64 { component.id }
 
     var slotText: String? {
-        guard let name = locationName, let slot = component.slot else { return nil }
-        return "\(name) · \(slot.label())"
+        guard let name = locationName, !component.slots.isEmpty else { return nil }
+        return component.slots.count == 1
+            ? "\(name) · \(component.slots[0].label())"
+            : "\(name) · \(component.slots.count) 个格口"
     }
 }
 

@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,6 +47,9 @@ import com.ecm.inventory.ui.iso.IsoStorageView
 import com.ecm.inventory.ui.iso.rememberIsoCamera
 import com.ecm.inventory.ui.theme.AppleText
 import com.ecm.inventory.ui.theme.AppleTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ComponentDetailScreen(
@@ -56,8 +62,12 @@ fun ComponentDetailScreen(
     val colors = AppleTheme.colors
     val all by vm.allComponentsState.collectAsState()
     val locations by vm.locations.collectAsState()
+    val allConsumptions by vm.consumptions.collectAsState()
     val component = all.firstOrNull { it.id == componentId }
     var confirmDelete by remember { mutableStateOf(false) }
+    var showConsume by remember { mutableStateOf(false) }
+    var consumeQuantity by remember { mutableStateOf("1") }
+    var consumeDetail by remember { mutableStateOf("") }
 
     if (component == null) {
         Column(
@@ -73,6 +83,7 @@ fun ComponentDetailScreen(
 
     val location = component.locationId?.let { id -> locations.firstOrNull { it.id == id } }
     val neighbours = location?.let { loc -> all.filter { it.locationId == loc.id } } ?: emptyList()
+    val history = allConsumptions.filter { it.componentId == component.id }
     val camera = rememberIsoCamera()
 
     Column(
@@ -142,6 +153,30 @@ fun ComponentDetailScreen(
                 }
             }
 
+            item {
+                InsetSection(
+                    header = "消耗记录",
+                    footer = if (history.isEmpty()) "每次登记都会自动扣减库存并保留逐笔明细。" else null
+                ) {
+                    SettingsRow(
+                        title = "登记消耗",
+                        value = if (component.quantity > 0) "当前 ${component.quantity} ${component.unit}" else "库存为 0",
+                        valueColor = colors.accent,
+                        showChevron = true,
+                        onClick = { if (component.quantity > 0) showConsume = true }
+                    )
+                    history.forEach { record ->
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(
+                            title = "消耗 ${record.quantity} ${component.unit}",
+                            subtitle = listOf(formatConsumptionTime(record.consumedAt), record.detail)
+                                .filter { it.isNotBlank() }.joinToString(" · "),
+                            value = "余 ${record.stockAfter}"
+                        )
+                    }
+                }
+            }
+
             if (location != null) {
                 item {
                     InsetSection(
@@ -158,10 +193,10 @@ fun ComponentDetailScreen(
                                 layers = location.layers,
                                 rows = location.rows,
                                 cols = location.cols,
-                                bins = neighbours.mapNotNull { n ->
-                                    n.slot?.let { s -> s to BinStyle(fill = n.typeEnum.tint.copy(alpha = if (n.id == component.id) 1f else 0.5f), count = n.quantity) }
+                                bins = neighbours.flatMap { n ->
+                                    n.slots.map { s -> s to BinStyle(fill = n.typeEnum.tint.copy(alpha = if (n.id == component.id) 1f else 0.5f), count = n.quantity) }
                                 }.toMap(),
-                                highlight = component.slot,
+                                highlight = component.slots.firstOrNull(),
                                 camera = camera,
                                 modifier = Modifier.fillMaxSize()
                             )
@@ -169,7 +204,11 @@ fun ComponentDetailScreen(
                         RowSeparator(startInset = 16.dp)
                         SettingsRow(
                             title = location.name,
-                            subtitle = "${location.kindEnum.label} · ${component.slot?.label() ?: "未指定格口"}",
+                            subtitle = "${location.kindEnum.label} · " + when (component.slots.size) {
+                                0 -> "未指定格口"
+                                1 -> component.slots.first().label()
+                                else -> "${component.slots.size} 个格口"
+                            },
                             showChevron = true,
                             onClick = { onOpenLocation(location.id) }
                         )
@@ -224,7 +263,51 @@ fun ComponentDetailScreen(
             }
         }
     }
+
+    if (showConsume) {
+        val amount = consumeQuantity.toIntOrNull() ?: 0
+        AlertDialog(
+            onDismissRequest = { showConsume = false },
+            title = { Text("登记消耗") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = consumeQuantity,
+                        onValueChange = { consumeQuantity = it.filter(Char::isDigit) },
+                        label = { Text("消耗数量（${component.unit}）") },
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = consumeDetail,
+                        onValueChange = { consumeDetail = it },
+                        label = { Text("用途 / 明细") },
+                        placeholder = { Text("如：样机 A 焊接、维修工单 012") },
+                        minLines = 2
+                    )
+                    Text("登记后库存：${(component.quantity - amount).coerceAtLeast(0)} ${component.unit}", style = AppleText.footnote)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = amount in 1..component.quantity && consumeDetail.isNotBlank(),
+                    onClick = {
+                        vm.consume(component, amount, consumeDetail) { saved ->
+                            if (saved) {
+                                showConsume = false
+                                consumeQuantity = "1"
+                                consumeDetail = ""
+                            }
+                        }
+                    }
+                ) { Text("确认消耗") }
+            },
+            dismissButton = { TextButton(onClick = { showConsume = false }) { Text("取消") } }
+        )
+    }
 }
+
+private fun formatConsumptionTime(value: Long): String =
+    SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(value))
 
 @Composable
 private fun DetailRow(title: String, value: String) {

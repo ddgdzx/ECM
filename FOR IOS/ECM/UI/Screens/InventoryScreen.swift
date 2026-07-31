@@ -75,6 +75,7 @@ struct InventoryScreen: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("元件库")
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $vm.query, prompt: "搜索型号、参数、封装")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

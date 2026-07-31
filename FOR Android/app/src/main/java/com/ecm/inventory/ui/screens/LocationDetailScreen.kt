@@ -86,7 +86,7 @@ fun LocationDetailScreen(
     }
 
     val inside = components.filter { it.locationId == location.id }
-    val bySlot: Map<Slot, List<ComponentEntity>> = inside.mapNotNull { c -> c.slot?.let { it to c } }
+    val bySlot: Map<Slot, List<ComponentEntity>> = inside.flatMap { c -> c.slots.map { it to c } }
         .groupBy({ it.first }, { it.second })
     val selectedItems = selected?.let { bySlot[it].orEmpty() } ?: emptyList()
 
@@ -231,7 +231,11 @@ private fun ComponentSlotRow(c: ComponentEntity, showSlot: Boolean = false, onCl
         title = c.displayTitle,
         subtitle = listOfNotNull(
             c.displaySubtitle.takeIf { it.isNotBlank() },
-            if (showSlot) c.slot?.label() else null
+            if (showSlot) when (c.slots.size) {
+                0 -> null
+                1 -> c.slots.first().label()
+                else -> "${c.slots.size} 个格口"
+            } else null
         ).joinToString("  ·  "),
         leading = { ComponentBadge(c.typeEnum) },
         minHeight = 56.dp,

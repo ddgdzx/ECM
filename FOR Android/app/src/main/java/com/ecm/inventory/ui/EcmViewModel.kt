@@ -9,6 +9,7 @@ import com.ecm.inventory.EcmApp
 import com.ecm.inventory.data.ComponentEntity
 import com.ecm.inventory.data.ComponentType
 import com.ecm.inventory.data.ComponentWithLocation
+import com.ecm.inventory.data.ConsumptionEntity
 import com.ecm.inventory.data.EcmRepository
 import com.ecm.inventory.data.LocationEntity
 import com.ecm.inventory.data.LocationKind
@@ -37,7 +38,7 @@ data class ComponentDraft(
     val minQuantity: Int = 0,
     val unit: String = "个",
     val locationId: Long? = null,
-    val slot: Slot? = null,
+    val slots: List<Slot> = emptyList(),
     val note: String = ""
 ) {
     val isValid: Boolean get() = model.isNotBlank()
@@ -52,9 +53,10 @@ data class ComponentDraft(
         minQuantity = minQuantity,
         unit = unit,
         locationId = locationId,
-        layer = slot?.layer ?: 0,
-        row = slot?.row ?: 0,
-        col = slot?.col ?: 0,
+        layer = slots.firstOrNull()?.layer ?: 0,
+        row = slots.firstOrNull()?.row ?: 0,
+        col = slots.firstOrNull()?.col ?: 0,
+        slotsData = Slot.encodeMany(slots),
         note = note.trim()
     )
 
@@ -69,7 +71,7 @@ data class ComponentDraft(
             minQuantity = e.minQuantity,
             unit = e.unit,
             locationId = e.locationId,
-            slot = e.slot,
+            slots = e.slots,
             note = e.note
         )
     }
@@ -145,6 +147,9 @@ class EcmViewModel(private val repo: EcmRepository) : ViewModel() {
 
     val allComponentsState: StateFlow<List<ComponentEntity>> get() = allComponents
 
+    val consumptions: StateFlow<List<ConsumptionEntity>> = repo.observeConsumptions()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     /* ---------------- 元件草稿 ---------------- */
 
     private val _componentDraft = MutableStateFlow(ComponentDraft())
@@ -183,6 +188,13 @@ class EcmViewModel(private val repo: EcmRepository) : ViewModel() {
     fun adjustQuantity(item: ComponentEntity, delta: Int) {
         viewModelScope.launch { repo.setQuantity(item.id, item.quantity + delta) }
     }
+
+    fun consume(item: ComponentEntity, quantity: Int, detail: String, onSaved: (Boolean) -> Unit = {}) {
+        viewModelScope.launch { onSaved(repo.consume(item.id, quantity, detail)) }
+    }
+
+    fun consumptionsFor(componentId: Long): List<ConsumptionEntity> =
+        consumptions.value.filter { it.componentId == componentId }
 
     fun componentById(id: Long): ComponentEntity? = allComponents.value.firstOrNull { it.id == id }
 

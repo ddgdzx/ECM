@@ -75,13 +75,14 @@ private struct LocationCard: View {
     private var bins: [Slot: BinStyle] {
         var result: [Slot: BinStyle] = [:]
         for c in inside {
-            guard let slot = c.slot else { continue }
-            result[slot] = BinStyle(fill: c.typeEnum.tint, count: c.quantity)
+            for slot in c.slots {
+                result[slot] = BinStyle(fill: c.typeEnum.tint, count: c.quantity)
+            }
         }
         return result
     }
 
-    private var usedSlots: Int { Set(inside.compactMap(\.slot)).count }
+    private var usedSlots: Int { Set(inside.flatMap(\.slots)).count }
 
     var body: some View {
         VStack(spacing: 0) {

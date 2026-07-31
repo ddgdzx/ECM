@@ -88,6 +88,21 @@ data class Slot(val layer: Int, val row: Int, val col: Int) {
         val rowName = ('A' + row.coerceIn(0, 25))
         return if (showLayer) "${layer + 1}层 $rowName${col + 1}" else "$rowName${col + 1}"
     }
+
+    fun encode(): String = "$layer,$row,$col"
+
+    companion object {
+        fun decode(value: String): Slot? {
+            val parts = value.split(',').mapNotNull(String::toIntOrNull)
+            return if (parts.size == 3) Slot(parts[0], parts[1], parts[2]) else null
+        }
+
+        fun encodeMany(slots: Collection<Slot>): String = slots.distinct()
+            .sortedWith(compareBy<Slot> { it.layer }.thenBy { it.row }.thenBy { it.col })
+            .joinToString(";") { it.encode() }
+
+        fun decodeMany(value: String): List<Slot> = value.split(';').mapNotNull(::decode).distinct()
+    }
 }
 
 /** 一条库存记录。 */
@@ -108,11 +123,15 @@ data class ComponentEntity(
     val layer: Int = 0,
     val row: Int = 0,
     val col: Int = 0,
+    val slotsData: String = "",
     val note: String = "",
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     val typeEnum: ComponentType get() = ComponentType.of(type)
-    val slot: Slot? get() = if (locationId == null) null else Slot(layer, row, col)
+    val slots: List<Slot>
+        get() = if (locationId == null) emptyList()
+        else Slot.decodeMany(slotsData).ifEmpty { listOf(Slot(layer, row, col)) }
+    val slot: Slot? get() = slots.firstOrNull()
     val isLow: Boolean get() = minQuantity > 0 && quantity <= minQuantity
 
     /** 列表中显示的主标题：型号优先，没有型号时退回参数值。 */
@@ -124,6 +143,20 @@ data class ComponentEntity(
         get() = listOf(value, packageSpec).filter { it.isNotBlank() }.joinToString(" · ")
 }
 
+/** 一次元件消耗记录；库存扣减后保留用途、时间和扣减后的余量。 */
+@Entity(
+    tableName = "consumption_records",
+    indices = [Index("componentId"), Index("consumedAt")]
+)
+data class ConsumptionEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val componentId: Long,
+    val quantity: Int,
+    val detail: String,
+    val consumedAt: Long = System.currentTimeMillis(),
+    val stockAfter: Int
+)
+
 /** 元件 + 其所在位置名称，用于列表展示。 */
 data class ComponentWithLocation(
     val component: ComponentEntity,
@@ -132,7 +165,9 @@ data class ComponentWithLocation(
     val slotText: String?
         get() {
             val name = locationName ?: return null
-            val slot = component.slot ?: return null
-            return "$name · ${slot.label()}"
+            val slots = component.slots
+            if (slots.isEmpty()) return null
+            return if (slots.size == 1) "$name · ${slots.first().label()}"
+            else "$name · ${slots.size} 个格口"
         }
 }

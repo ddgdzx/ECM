@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 /*
- 持久化层。安卓端用的是 Room（ecm.db），这里用 SwiftData 存同样的两张表。
+ 持久化层。安卓端用的是 Room（ecm.db），这里用 SwiftData 存对应的数据表。
  对外只暴露值类型（ComponentEntity / LocationEntity），@Model 记录类只在本文件里出现，
  这样界面层拿到的东西和 Kotlin 那边的 data class 完全一致。
  */
@@ -21,6 +21,7 @@ final class ComponentRecord {
     var layer: Int = 0
     var row: Int = 0
     var col: Int = 0
+    var slotsData: String = ""
     var note: String = ""
     var updatedAt: Double = 0
 
@@ -37,6 +38,7 @@ final class ComponentRecord {
         layer = e.layer
         row = e.row
         col = e.col
+        slotsData = e.slotsData
         note = e.note
         updatedAt = e.updatedAt
     }
@@ -54,6 +56,7 @@ final class ComponentRecord {
         layer = e.layer
         row = e.row
         col = e.col
+        slotsData = e.slotsData
         note = e.note
         updatedAt = e.updatedAt
     }
@@ -62,8 +65,34 @@ final class ComponentRecord {
         ComponentEntity(
             id: cid, type: type, model: model, value: value, packageSpec: packageSpec,
             quantity: quantity, minQuantity: minQuantity, unit: unit,
-            locationId: locationId, layer: layer, row: row, col: col,
+            locationId: locationId, layer: layer, row: row, col: col, slotsData: slotsData,
             note: note, updatedAt: updatedAt
+        )
+    }
+}
+
+@Model
+final class ConsumptionRecord {
+    var rid: Int64 = 0
+    var componentId: Int64 = 0
+    var quantity: Int = 0
+    var detail: String = ""
+    var consumedAt: Double = 0
+    var stockAfter: Int = 0
+
+    init(entity e: ConsumptionEntity) {
+        rid = e.id
+        componentId = e.componentId
+        quantity = e.quantity
+        detail = e.detail
+        consumedAt = e.consumedAt
+        stockAfter = e.stockAfter
+    }
+
+    var entity: ConsumptionEntity {
+        ConsumptionEntity(
+            id: rid, componentId: componentId, quantity: quantity,
+            detail: detail, consumedAt: consumedAt, stockAfter: stockAfter
         )
     }
 }
@@ -118,7 +147,7 @@ final class EcmRepository {
     private var context: ModelContext { container.mainContext }
 
     init() {
-        let schema = Schema([ComponentRecord.self, LocationRecord.self])
+        let schema = Schema([ComponentRecord.self, LocationRecord.self, ConsumptionRecord.self])
         do {
             container = try ModelContainer(for: schema)
         } catch {
@@ -142,6 +171,11 @@ final class EcmRepository {
         return records.map(\.entity).sorted { $0.createdAt < $1.createdAt }
     }
 
+    func loadConsumptions() -> [ConsumptionEntity] {
+        let records = (try? context.fetch(FetchDescriptor<ConsumptionRecord>())) ?? []
+        return records.map(\.entity).sorted { $0.consumedAt > $1.consumedAt }
+    }
+
     // MARK: 元件
 
     @discardableResult
@@ -161,6 +195,9 @@ final class EcmRepository {
     }
 
     func deleteComponent(_ item: ComponentEntity) {
+        for record in allConsumptionRecords() where record.componentId == item.id {
+            context.delete(record)
+        }
         if let record = componentRecord(item.id) { context.delete(record) }
         save()
     }
@@ -170,6 +207,28 @@ final class EcmRepository {
         record.quantity = max(0, quantity)
         record.updatedAt = Self.now
         save()
+    }
+
+    @discardableResult
+    func consume(_ componentId: Int64, quantity: Int, detail: String) -> Bool {
+        guard let record = componentRecord(componentId) else { return false }
+        let amount = max(1, quantity)
+        guard amount <= record.quantity else { return false }
+        let after = record.quantity - amount
+        let now = Self.now
+        record.quantity = after
+        record.updatedAt = now
+        let item = ConsumptionEntity(
+            id: nextId(of: ConsumptionRecord.self) { $0.rid },
+            componentId: componentId,
+            quantity: amount,
+            detail: detail.trimmed,
+            consumedAt: now,
+            stockAfter: after
+        )
+        context.insert(ConsumptionRecord(entity: item))
+        save()
+        return true
     }
 
     // MARK: 位置
@@ -188,7 +247,7 @@ final class EcmRepository {
             context.insert(LocationRecord(entity: stamped))
         }
         // 容器尺寸调小时，超出范围的元件退回"未分配"，避免出现看不见的槽位。
-        detachOutOfRange(locationId: stamped.id, layers: stamped.layers, rows: stamped.rows, cols: stamped.cols)
+        detachOutOfRange(location: stamped)
         save()
         return stamped.id
     }
@@ -207,11 +266,20 @@ final class EcmRepository {
     }
 
     /// 容器缩小后，把落在范围外的元件移出格口。
-    private func detachOutOfRange(locationId: Int64, layers: Int, rows: Int, cols: Int) {
+    private func detachOutOfRange(location: LocationEntity) {
         for record in allComponentRecords()
-        where record.locationId == locationId
-            && (record.layer >= layers || record.row >= rows || record.col >= cols) {
-            record.locationId = nil
+        where record.locationId == location.id {
+            let valid = record.entity.slots.filter(location.contains)
+            guard valid != record.entity.slots else { continue }
+            if let first = valid.first {
+                record.layer = first.layer
+                record.row = first.row
+                record.col = first.col
+                record.slotsData = Slot.encodeMany(valid)
+            } else {
+                record.locationId = nil
+                record.slotsData = ""
+            }
         }
     }
 
@@ -221,6 +289,10 @@ final class EcmRepository {
 
     private func allComponentRecords() -> [ComponentRecord] {
         (try? context.fetch(FetchDescriptor<ComponentRecord>())) ?? []
+    }
+
+    private func allConsumptionRecords() -> [ConsumptionRecord] {
+        (try? context.fetch(FetchDescriptor<ConsumptionRecord>())) ?? []
     }
 
     private func componentRecord(_ id: Int64) -> ComponentRecord? {

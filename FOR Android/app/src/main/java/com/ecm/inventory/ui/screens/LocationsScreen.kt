@@ -111,10 +111,10 @@ fun LocationsScreen(
                 val inside = components.filter { it.locationId == loc.id }
                 LocationCard(
                     location = loc,
-                    bins = inside.mapNotNull { c ->
-                        c.slot?.let { it to BinStyle(fill = c.typeEnum.tint, count = c.quantity) }
+                    bins = inside.flatMap { c ->
+                        c.slots.map { it to BinStyle(fill = c.typeEnum.tint, count = c.quantity) }
                     }.toMap(),
-                    usedSlots = inside.mapNotNull { it.slot }.distinct().size,
+                    usedSlots = inside.flatMap { it.slots }.distinct().size,
                     itemCount = inside.size,
                     onClick = { onOpen(loc.id) }
                 )

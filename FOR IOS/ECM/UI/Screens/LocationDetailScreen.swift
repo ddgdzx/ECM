@@ -15,7 +15,8 @@ struct LocationDetailScreen: View {
     private var inside: [ComponentEntity] { vm.componentsIn(locationId) }
 
     private var bySlot: [Slot: [ComponentEntity]] {
-        Dictionary(grouping: inside.filter { $0.slot != nil }, by: { $0.slot! })
+        let pairs = inside.flatMap { component in component.slots.map { ($0, component) } }
+        return Dictionary(grouping: pairs, by: { $0.0 }).mapValues { $0.map(\.1) }
     }
 
     private var selectedItems: [ComponentEntity] {
@@ -135,7 +136,7 @@ struct LocationDetailScreen: View {
                                 component: c,
                                 subtitleOverride: [
                                     c.displaySubtitle.isBlank ? nil : c.displaySubtitle,
-                                    c.slot?.label()
+                                    c.slots.count == 1 ? c.slots[0].label() : "\(c.slots.count) 个格口"
                                 ].compactMap { $0 }.joined(separator: "  ·  "),
                                 trailingStyle: .inline
                             )

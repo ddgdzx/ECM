@@ -68,11 +68,6 @@ fun InventoryScreen(
     val onlyLow by vm.onlyLowStock.collectAsState()
     val all by vm.allComponentsState.collectAsState()
 
-    val listState = rememberLazyListState()
-    val collapsed by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 36 }
-    }
-
     val lowCount = all.count { it.isLow }
     val totalQty = all.sumOf { it.quantity }
 
@@ -84,15 +79,14 @@ fun InventoryScreen(
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         CupertinoNavBar(
             title = "元件库",
-            showTitle = collapsed,
-            showSeparator = collapsed,
+            showTitle = true,
+            showSeparator = true,
             trailing = {
                 NavIconButton(Icons.Rounded.Add, "添加元件", onAdd)
             }
         )
 
         LazyColumn(
-            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = 8.dp,
@@ -101,12 +95,11 @@ fun InventoryScreen(
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             item {
-                LargeTitle("元件库")
                 Text(
                     "${all.size} 个条目 · 合计 $totalQty 件",
                     style = AppleText.footnote,
                     color = colors.secondaryLabel,
-                    modifier = Modifier.padding(start = 16.dp, bottom = 10.dp)
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 10.dp)
                 )
             }
 

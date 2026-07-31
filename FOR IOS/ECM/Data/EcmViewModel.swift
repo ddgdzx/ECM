@@ -28,7 +28,7 @@ struct ComponentDraft: Equatable {
     var minQuantity: Int = 0
     var unit: String = "个"
     var locationId: Int64?
-    var slot: Slot?
+    var slots: [Slot] = []
     var note: String = ""
 
     var isValid: Bool { !model.isBlank }
@@ -44,9 +44,10 @@ struct ComponentDraft: Equatable {
         e.minQuantity = minQuantity
         e.unit = unit
         e.locationId = locationId
-        e.layer = slot?.layer ?? 0
-        e.row = slot?.row ?? 0
-        e.col = slot?.col ?? 0
+        e.layer = slots.first?.layer ?? 0
+        e.row = slots.first?.row ?? 0
+        e.col = slots.first?.col ?? 0
+        e.slotsData = Slot.encodeMany(slots)
         e.note = note.trimmed
         return e
     }
@@ -55,7 +56,7 @@ struct ComponentDraft: Equatable {
         ComponentDraft(
             id: e.id, type: e.typeEnum, model: e.model, value: e.value,
             packageSpec: e.packageSpec, quantity: e.quantity, minQuantity: e.minQuantity,
-            unit: e.unit, locationId: e.locationId, slot: e.slot, note: e.note
+            unit: e.unit, locationId: e.locationId, slots: e.slots, note: e.note
         )
     }
 }
@@ -99,6 +100,7 @@ final class EcmViewModel: ObservableObject {
 
     @Published private(set) var allComponents: [ComponentEntity] = []
     @Published private(set) var locations: [LocationEntity] = []
+    @Published private(set) var consumptions: [ConsumptionEntity] = []
 
     @Published var query: String = ""
     @Published var typeFilter: ComponentType?
@@ -121,6 +123,7 @@ final class EcmViewModel: ObservableObject {
     private func reload() {
         allComponents = repo.loadComponents()
         locations = repo.loadLocations()
+        consumptions = repo.loadConsumptions()
     }
 
     /// 列表页展示用：过滤 + 排序 + 附带位置名称。
@@ -175,6 +178,17 @@ final class EcmViewModel: ObservableObject {
     func adjustQuantity(_ item: ComponentEntity, to newValue: Int) {
         repo.setQuantity(item.id, newValue)
         reload()
+    }
+
+    @discardableResult
+    func consume(_ item: ComponentEntity, quantity: Int, detail: String) -> Bool {
+        let saved = repo.consume(item.id, quantity: quantity, detail: detail)
+        reload()
+        return saved
+    }
+
+    func consumptionsFor(_ componentId: Int64) -> [ConsumptionEntity] {
+        consumptions.filter { $0.componentId == componentId }
     }
 
     func componentById(_ id: Int64) -> ComponentEntity? { allComponents.first { $0.id == id } }

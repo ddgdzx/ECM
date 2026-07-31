@@ -36,8 +36,10 @@ struct ComponentEditScreen: View {
 
     private var locationText: String {
         guard let location else { return "未分配" }
-        guard let slot = vm.componentDraft.slot else { return location.name }
-        return "\(location.name) · \(slot.label())"
+        guard !vm.componentDraft.slots.isEmpty else { return location.name }
+        return vm.componentDraft.slots.count == 1
+            ? "\(location.name) · \(vm.componentDraft.slots[0].label())"
+            : "\(location.name) · \(vm.componentDraft.slots.count) 个格口"
     }
 
     var body: some View {
@@ -100,13 +102,13 @@ struct ComponentEditScreen: View {
                 if vm.componentDraft.locationId != nil {
                     Button("清除位置", role: .destructive) {
                         vm.componentDraft.locationId = nil
-                        vm.componentDraft.slot = nil
+                        vm.componentDraft.slots = []
                     }
                 }
             } header: {
                 Text("存放位置")
             } footer: {
-                Text("在立体示意图上点选格口即可完成分配。")
+                Text("在立体示意图上可点选一个或多个格口。")
             }
 
             Section("备注") {

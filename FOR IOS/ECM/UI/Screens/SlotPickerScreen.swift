@@ -9,7 +9,7 @@ struct SlotPickerScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var locationId: Int64?
-    @State private var slot: Slot?
+    @State private var slots: Set<Slot> = []
     @State private var exploded = false
     @State private var creatingLocation = false
     @StateObject private var camera = IsoCameraState()
@@ -18,12 +18,12 @@ struct SlotPickerScreen: View {
 
     private var bySlot: [Slot: [ComponentEntity]] {
         let occupants = vm.allComponents.filter { $0.locationId == locationId && $0.id != vm.componentDraft.id }
-        return Dictionary(grouping: occupants.filter { $0.slot != nil }, by: { $0.slot! })
+        let pairs = occupants.flatMap { component in component.slots.map { ($0, component) } }
+        return Dictionary(grouping: pairs, by: { $0.0 }).mapValues { $0.map(\.1) }
     }
 
     private var occupantsHere: [ComponentEntity] {
-        guard let slot else { return [] }
-        return bySlot[slot] ?? []
+        Array(Set(slots.flatMap { bySlot[$0] ?? [] }))
     }
 
     var body: some View {
@@ -48,7 +48,7 @@ struct SlotPickerScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("完成") { commit() }
                     .fontWeight(.semibold)
-                    .disabled(location == nil)
+                    .disabled(location == nil || slots.isEmpty)
             }
         }
         .sheet(isPresented: $creatingLocation) {
@@ -57,7 +57,7 @@ struct SlotPickerScreen: View {
         .onAppear {
             if locationId == nil {
                 locationId = vm.componentDraft.locationId ?? vm.locations.first?.id
-                slot = vm.componentDraft.slot
+                slots = Set(vm.componentDraft.slots)
             }
             exploded = (location?.layers ?? 1) > 1
         }
@@ -70,7 +70,7 @@ struct SlotPickerScreen: View {
                     ForEach(vm.locations) { loc in
                         CapsuleChip(text: loc.name, selected: loc.id == locationId) {
                             locationId = loc.id
-                            slot = nil
+                            slots = []
                             exploded = loc.layers > 1
                         }
                     }
@@ -86,9 +86,12 @@ struct SlotPickerScreen: View {
                         rows: location.rows,
                         cols: location.cols,
                         bins: bins,
-                        highlight: slot,
+                        highlight: slots.first,
                         exploded: exploded,
-                        onSlotClick: { slot = $0 },
+                        onSlotClick: { selected in
+                            if slots.contains(selected) { slots.remove(selected) }
+                            else { slots.insert(selected) }
+                        },
                         camera: camera
                     )
                     .frame(height: 300)
@@ -103,28 +106,28 @@ struct SlotPickerScreen: View {
                     }
                     .edgeToEdgeRow()
                 } header: {
-                    Text("点选格口")
+                    Text("多选格口")
                 } footer: {
-                    Text("浅色为空格口，彩色为已有元件。选中的格口会高亮显示。")
+                    Text("点击可选择或取消格口；带 ✓ 的格口会一起分配给该元件。")
                 }
 
                 Section("已选择") {
                     InfoRow(
                         title: location.name,
-                        value: slot?.label() ?? "未选择格口",
-                        valueColor: slot == nil ? AppleColors.tertiaryLabel : AppleColors.accent
+                        value: slots.isEmpty ? "未选择格口" : "已选择 \(slots.count) 个格口",
+                        valueColor: slots.isEmpty ? AppleColors.tertiaryLabel : AppleColors.accent
                     )
                     if !occupantsHere.isEmpty {
-                        Text("该格口已有：" + occupantsHere.map(\.displayTitle).joined(separator: "、"))
+                        Text("所选格口已有：" + occupantsHere.map(\.displayTitle).joined(separator: "、"))
                             .font(AppleText.footnote)
                             .foregroundStyle(AppleColors.secondaryLabel)
                     }
                 }
 
                 Section {
-                    FilledActionButton(text: "放到这里", enabled: slot != nil) {
+                    FilledActionButton(text: "分配到所选格口", enabled: !slots.isEmpty) {
                         vm.componentDraft.locationId = locationId
-                        vm.componentDraft.slot = slot
+                        vm.componentDraft.slots = Array(slots)
                         dismiss()
                     }
                     .plainCardRow()
@@ -135,9 +138,13 @@ struct SlotPickerScreen: View {
     }
 
     private var bins: [Slot: BinStyle] {
-        bySlot.mapValues { list in
+        var result = bySlot.mapValues { list in
             BinStyle(fill: (list.first?.typeEnum.tint ?? AppleColors.gray).withAlpha(0.75), count: list.count)
         }
+        for slot in slots {
+            result[slot] = BinStyle(fill: AppleColors.accent, count: 1, label: "✓")
+        }
+        return result
     }
 
     private func startCreatingLocation() {
@@ -147,7 +154,7 @@ struct SlotPickerScreen: View {
 
     private func commit() {
         vm.componentDraft.locationId = locationId
-        vm.componentDraft.slot = slot ?? Slot(0, 0, 0)
+        vm.componentDraft.slots = Array(slots)
         dismiss()
     }
 }

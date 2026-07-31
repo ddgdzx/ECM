@@ -8,6 +8,7 @@ struct ComponentDetailScreen: View {
     @StateObject private var camera = IsoCameraState()
     @State private var confirmDelete = false
     @State private var showEdit = false
+    @State private var showConsume = false
 
     private var component: ComponentEntity? { vm.componentById(componentId) }
 
@@ -24,6 +25,9 @@ struct ComponentDetailScreen: View {
         .sheet(isPresented: $showEdit) {
             ComponentEditSheet()
         }
+        .sheet(isPresented: $showConsume) {
+            if let component { ConsumptionEntrySheet(component: component) }
+        }
     }
 
     @ViewBuilder
@@ -37,6 +41,41 @@ struct ComponentDetailScreen: View {
                     .plainCardRow()
             }
 
+            Section {
+                Button {
+                    showConsume = true
+                } label: {
+                    InfoRow(
+                        title: "登记消耗",
+                        value: component.quantity > 0 ? "当前 \(component.quantity) \(component.unit)" : "库存为 0",
+                        valueColor: AppleColors.accent
+                    )
+                }
+                .disabled(component.quantity == 0)
+
+                ForEach(vm.consumptionsFor(component.id)) { record in
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("消耗 \(record.quantity) \(component.unit)")
+                                .font(AppleText.body)
+                            Text(consumptionSubtitle(record))
+                                .font(AppleText.footnote)
+                                .foregroundStyle(AppleColors.secondaryLabel)
+                        }
+                        Spacer()
+                        Text("余 \(record.stockAfter)")
+                            .font(AppleText.footnote)
+                            .foregroundStyle(AppleColors.secondaryLabel)
+                    }
+                }
+            } header: {
+                Text("消耗记录")
+            } footer: {
+                if vm.consumptionsFor(component.id).isEmpty {
+                    Text("每次登记都会自动扣减库存并保留逐笔明细。")
+                }
+            }
+
             if let location {
                 Section {
                     IsoStorageView(
@@ -44,7 +83,7 @@ struct ComponentDetailScreen: View {
                         rows: location.rows,
                         cols: location.cols,
                         bins: bins(neighbours, current: component),
-                        highlight: component.slot,
+                        highlight: component.slots.first,
                         camera: camera
                     )
                     .frame(height: 240)
@@ -55,7 +94,7 @@ struct ComponentDetailScreen: View {
                             Text(location.name)
                                 .font(AppleText.body)
                                 .foregroundStyle(AppleColors.label)
-                            Text("\(location.kindEnum.label) · \(component.slot?.label() ?? "未指定格口")")
+                            Text("\(location.kindEnum.label) · \(slotSummary(component))")
                                 .font(AppleText.footnote)
                                 .foregroundStyle(AppleColors.secondaryLabel)
                         }
@@ -179,12 +218,67 @@ struct ComponentDetailScreen: View {
     private func bins(_ neighbours: [ComponentEntity], current: ComponentEntity) -> [Slot: BinStyle] {
         var result: [Slot: BinStyle] = [:]
         for n in neighbours {
-            guard let slot = n.slot else { continue }
-            result[slot] = BinStyle(
-                fill: n.typeEnum.tint.withAlpha(n.id == current.id ? 1 : 0.5),
-                count: n.quantity
-            )
+            for slot in n.slots {
+                result[slot] = BinStyle(
+                    fill: n.typeEnum.tint.withAlpha(n.id == current.id ? 1 : 0.5),
+                    count: n.quantity
+                )
+            }
         }
         return result
+    }
+
+    private func slotSummary(_ component: ComponentEntity) -> String {
+        if component.slots.isEmpty { return "未指定格口" }
+        if component.slots.count == 1 { return component.slots[0].label() }
+        return "\(component.slots.count) 个格口"
+    }
+
+    private func consumptionSubtitle(_ record: ConsumptionEntity) -> String {
+        let date = Date(timeIntervalSince1970: record.consumedAt / 1000)
+            .formatted(date: .abbreviated, time: .shortened)
+        return [date, record.detail].filter { !$0.isBlank }.joined(separator: " · ")
+    }
+}
+
+private struct ConsumptionEntrySheet: View {
+    let component: ComponentEntity
+
+    @EnvironmentObject private var vm: EcmViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var quantity = "1"
+    @State private var detail = ""
+
+    private var amount: Int { Int(quantity) ?? 0 }
+    private var valid: Bool { (1...component.quantity).contains(amount) && !detail.isBlank }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("消耗数量") {
+                    TextField("数量", text: $quantity)
+                        .keyboardType(.numberPad)
+                    InfoRow(title: "登记后库存", value: "\(max(0, component.quantity - amount)) \(component.unit)")
+                }
+                Section("用途 / 明细") {
+                    TextField("如：样机 A 焊接、维修工单 012", text: $detail, axis: .vertical)
+                        .lineLimit(3...6)
+                }
+            }
+            .navigationTitle("登记消耗")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("确认") {
+                        if vm.consume(component, quantity: amount, detail: detail) { dismiss() }
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(!valid)
+                }
+            }
+        }
     }
 }
