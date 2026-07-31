@@ -241,7 +241,7 @@ struct ComponentDetailScreen: View {
     }
 }
 
-private struct ConsumptionEntrySheet: View {
+struct ConsumptionEntrySheet: View {
     let component: ComponentEntity
 
     @EnvironmentObject private var vm: EcmViewModel

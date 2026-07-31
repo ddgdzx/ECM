@@ -66,8 +66,6 @@ fun ComponentDetailScreen(
     val component = all.firstOrNull { it.id == componentId }
     var confirmDelete by remember { mutableStateOf(false) }
     var showConsume by remember { mutableStateOf(false) }
-    var consumeQuantity by remember { mutableStateOf("1") }
-    var consumeDetail by remember { mutableStateOf("") }
 
     if (component == null) {
         Column(
@@ -265,45 +263,45 @@ fun ComponentDetailScreen(
     }
 
     if (showConsume) {
-        val amount = consumeQuantity.toIntOrNull() ?: 0
-        AlertDialog(
-            onDismissRequest = { showConsume = false },
-            title = { Text("登记消耗") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = consumeQuantity,
-                        onValueChange = { consumeQuantity = it.filter(Char::isDigit) },
-                        label = { Text("消耗数量（${component.unit}）") },
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = consumeDetail,
-                        onValueChange = { consumeDetail = it },
-                        label = { Text("用途 / 明细") },
-                        placeholder = { Text("如：样机 A 焊接、维修工单 012") },
-                        minLines = 2
-                    )
-                    Text("登记后库存：${(component.quantity - amount).coerceAtLeast(0)} ${component.unit}", style = AppleText.footnote)
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = amount in 1..component.quantity && consumeDetail.isNotBlank(),
-                    onClick = {
-                        vm.consume(component, amount, consumeDetail) { saved ->
-                            if (saved) {
-                                showConsume = false
-                                consumeQuantity = "1"
-                                consumeDetail = ""
-                            }
-                        }
-                    }
-                ) { Text("确认消耗") }
-            },
-            dismissButton = { TextButton(onClick = { showConsume = false }) { Text("取消") } }
-        )
+        ConsumptionDialog(vm = vm, component = component, onDismiss = { showConsume = false })
     }
+}
+
+@Composable
+fun ConsumptionDialog(vm: EcmViewModel, component: com.ecm.inventory.data.ComponentEntity, onDismiss: () -> Unit) {
+    var consumeQuantity by remember(component.id) { mutableStateOf("1") }
+    var consumeDetail by remember(component.id) { mutableStateOf("") }
+    val amount = consumeQuantity.toIntOrNull() ?: 0
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("登记消耗 · ${component.displayTitle}") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = consumeQuantity,
+                    onValueChange = { consumeQuantity = it.filter(Char::isDigit) },
+                    label = { Text("消耗数量（${component.unit}）") },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = consumeDetail,
+                    onValueChange = { consumeDetail = it },
+                    label = { Text("用途 / 明细") },
+                    placeholder = { Text("如：样机 A 焊接、维修工单 012") },
+                    minLines = 2
+                )
+                Text("登记后库存：${(component.quantity - amount).coerceAtLeast(0)} ${component.unit}", style = AppleText.footnote)
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = amount in 1..component.quantity && consumeDetail.isNotBlank(),
+                onClick = { vm.consume(component, amount, consumeDetail) { if (it) onDismiss() } }
+            ) { Text("确认消耗") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
+    )
 }
 
 private fun formatConsumptionTime(value: Long): String =

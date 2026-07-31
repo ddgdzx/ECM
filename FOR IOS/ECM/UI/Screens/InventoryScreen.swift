@@ -4,6 +4,8 @@ struct InventoryScreen: View {
     @EnvironmentObject private var vm: EcmViewModel
     @State private var path: [Route] = []
     @State private var showEdit = false
+    @State private var showConsumePicker = false
+    @State private var consumptionComponent: ComponentEntity?
 
     private var items: [ComponentWithLocation] { vm.visibleComponents }
     private var lowCount: Int { vm.allComponents.filter(\.isLow).count }
@@ -19,6 +21,17 @@ struct InventoryScreen: View {
                         .padding(.horizontal, 16)
                         .padding(.bottom, 4)
                         .plainCardRow()
+
+                    FilledActionButton(
+                        text: "−  登记元件消耗",
+                        enabled: vm.allComponents.contains { $0.quantity > 0 },
+                        color: AppleColors.orange
+                    ) {
+                        showConsumePicker = true
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .plainCardRow()
 
                     ChipScroller {
                         CapsuleChip(text: "全部", selected: vm.typeFilter == nil) {
@@ -91,6 +104,23 @@ struct InventoryScreen: View {
             .ecmNavigationDestinations()
             .sheet(isPresented: $showEdit) {
                 ComponentEditSheet()
+            }
+            .sheet(item: $consumptionComponent) { component in
+                ConsumptionEntrySheet(component: component)
+            }
+            .confirmationDialog(
+                "选择要消耗的元件",
+                isPresented: $showConsumePicker,
+                titleVisibility: .visible
+            ) {
+                ForEach(vm.allComponents.filter { $0.quantity > 0 }) { component in
+                    Button("\(component.displayTitle) · \(component.quantity) \(component.unit)") {
+                        consumptionComponent = component
+                    }
+                }
+                Button("取消", role: .cancel) {}
+            } message: {
+                Text("选择后填写消耗数量和用途明细。")
             }
         }
     }
