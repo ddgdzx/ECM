@@ -4,8 +4,8 @@
 
 | 目录 | 平台 | 技术栈 | 出包 |
 | --- | --- | --- | --- |
-| [`android/`](android/) | Android 8.0+ | Kotlin + Jetpack Compose + Room | [`.github/workflows/android.yml`](.github/workflows/android.yml) → APK |
-| [`ios/`](ios/) | iOS 17+ | Swift + SwiftUI + SwiftData | [`.github/workflows/ios.yml`](.github/workflows/ios.yml) → 未签名 ipa |
+| [`FOR Android/`](FOR%20Android/) | Android 8.0+ | Kotlin + Jetpack Compose + Room | [`.github/workflows/android.yml`](.github/workflows/android.yml) → APK |
+| [`FOR IOS/`](FOR%20IOS/) | iOS 17+ | Swift + SwiftUI + SwiftData | [`.github/workflows/ios.yml`](.github/workflows/ios.yml) → 未签名 ipa |
 
 两端功能、文案、配色、交互逐项对齐。安卓端当初是照着 Apple HIG 手写了一套 iOS 风格控件
 （分组列表、分段控件、步进器、大标题导航栏、底部标签栏）；iOS 端把这些换回系统原生控件，
@@ -28,7 +28,7 @@
 
 ## 两端代码的对应关系
 
-| 职责 | Android (`android/app/src/main/java/com/ecm/inventory/`) | iOS (`ios/ECM/`) |
+| 职责 | Android (`FOR Android/app/src/main/java/com/ecm/inventory/`) | iOS (`FOR IOS/ECM/`) |
 | --- | --- | --- |
 | 实体与枚举 | `data/Model.kt` | `Data/Models.swift` |
 | 本地数据库 | `data/EcmDatabase.kt` + `data/Repository.kt`（Room） | `Data/Persistence.swift`（SwiftData） |
@@ -45,16 +45,16 @@
 安卓：
 
 ```bash
-cd android
+cd "FOR Android"
 echo "sdk.dir=/path/to/android-sdk" > local.properties   # 需要 JDK 17、Android SDK（compileSdk 34）
 ./gradlew :app:assembleDebug
-# 产物：android/app/build/outputs/apk/debug/app-debug.apk
+# 产物：FOR Android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 iOS：
 
 ```bash
-open ios/ECM.xcodeproj    # 需要 Xcode 15+
+open "FOR IOS/ECM.xcodeproj"    # 需要 Xcode 15+
 # 选一个模拟器或自己的手机，直接 Run
 ```
 
@@ -69,7 +69,7 @@ open ios/ECM.xcodeproj    # 需要 Xcode 15+
 | Actions 页面手动 Run workflow | 同分支构建 |
 
 版本号由 CI 注入：安卓的 `versionName` / iOS 的 `MARKETING_VERSION` 取标签名（无标签时为 `1.0-<短 sha>`），
-`versionCode` / `CURRENT_PROJECT_VERSION` 取运行序号。安卓侧对应 `android/app/build.gradle.kts` 里读取的
+`versionCode` / `CURRENT_PROJECT_VERSION` 取运行序号。安卓侧对应 `FOR Android/app/build.gradle.kts` 里读取的
 `ECM_VERSION_NAME` / `ECM_VERSION_CODE` 环境变量；iOS 侧直接由 `xcodebuild` 命令行覆盖。
 
 两个工作流打 tag 时会往同一个 Release 上传：谁先跑完谁负责创建，后到的自动改成追加文件。
@@ -102,7 +102,7 @@ base64 -w0 release.jks   # macOS 用 base64 -i release.jks
 ### iOS 签名
 
 CI 里没有开发者证书，所以出的是**未签名 ipa**，只能配合自签工具使用。
-想装到自己手机上，最省事的办法是用 Xcode 打开 `ios/ECM.xcodeproj`，
+想装到自己手机上，最省事的办法是用 Xcode 打开 `FOR IOS/ECM.xcodeproj`，
 在 Signing & Capabilities 里选自己的 Apple ID（免费账号也行），然后直接 Run。
 
 ## 环境说明

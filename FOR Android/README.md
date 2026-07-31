@@ -3,7 +3,7 @@
 电子元器件库存管理 App 的安卓端。Kotlin + Jetpack Compose 编写，UI 按 Apple HIG 的观感做了一套
 iOS 风格的控件（分组列表、分段控件、步进器、大标题导航栏、底部标签栏），数据全部保存在本机 Room 数据库。
 
-对应的 iOS 版在 [`../ios/`](../ios/)，功能与文案逐项对齐。完整说明见[仓库根目录的 README](../README.md)。
+对应的 iOS 版在 [`../FOR IOS/`](../FOR%20IOS/)，功能与文案逐项对齐。完整说明见[仓库根目录的 README](../README.md)。
 
 ## 构建
 

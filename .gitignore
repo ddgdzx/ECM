@@ -12,7 +12,7 @@ captures/
 DerivedData/
 xcuserdata/
 *.xcuserstate
-ios/build/
-ios/dist/
+FOR IOS/build/
+FOR IOS/dist/
 *.ipa
 *.dSYM.zip

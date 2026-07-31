@@ -1,6 +1,6 @@
 # 元件库 · iOS
 
-`../android/` 那个安卓 App 的 iOS 版，功能、文案、配色、交互逐项对齐。
+`../FOR Android/` 那个安卓 App 的 iOS 版，功能、文案、配色、交互逐项对齐。
 Swift + SwiftUI + SwiftData，最低 iOS 17。
 
 ```bash

@@ -18,7 +18,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: ios
+    working-directory: "FOR IOS"
 
 jobs:
   build:
@@ -91,7 +91,7 @@ jobs:
               echo "| $(basename "$f") | $(du -h "$f" | cut -f1) |"
             done
             echo ""
-            echo "> ipa 未签名。想装到自己手机上，最省事的方式是用 Xcode 打开 \`ios/ECM.xcodeproj\`，"
+            echo "> ipa 未签名。想装到自己手机上，最省事的方式是用 Xcode 打开 \`FOR IOS/ECM.xcodeproj\`，"
             echo "> 选好自己的 Apple ID 后直接 Run。"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -99,7 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ecm-ios-${{ steps.version.outputs.name }}
-          path: ios/dist/*.ipa
+          path: "FOR IOS/dist/*.ipa"
           retention-days: 30
           if-no-files-found: error
 

@@ -18,7 +18,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: android
+    working-directory: "FOR Android"
 
 jobs:
   build:
@@ -41,7 +41,7 @@ jobs:
       - name: 配置 Gradle（含缓存）
         uses: gradle/actions/setup-gradle@v4
         with:
-          build-root-directory: android
+          build-root-directory: "FOR Android"
 
       - name: 计算版本号
         id: version
@@ -99,7 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ecm-apk-${{ steps.version.outputs.name }}
-          path: android/dist/*.apk
+          path: "FOR Android/dist/*.apk"
           retention-days: 30
           if-no-files-found: error
 
