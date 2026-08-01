@@ -15,7 +15,7 @@ struct InventoryScreen: View {
         NavigationStack(path: $path) {
             List {
                 Section {
-                    Text("\(vm.allComponents.count) 个条目 · 合计 \(totalQty) 件")
+                    Text(AppCopy.format("items_summary", language, vm.allComponents.count, totalQty))
                         .font(AppleText.footnote)
                         .foregroundStyle(AppleColors.secondaryLabel)
                         .padding(.horizontal, 16)
@@ -33,27 +33,27 @@ struct InventoryScreen: View {
                     .plainCardRow()
 
                     ChipScroller {
-                        CapsuleChip(text: "全部", selected: vm.typeFilter == nil) {
+                        CapsuleChip(text: AppCopy.text("all", language), selected: vm.typeFilter == nil) {
                             vm.typeFilter = nil
                         }
                         CapsuleChip(
-                            text: lowCount > 0 ? "库存偏低 \(lowCount)" : "库存偏低",
+                            text: lowCount > 0 ? AppCopy.format("low_stock_count", language, lowCount) : AppCopy.text("low_stock", language),
                             selected: vm.onlyLowStock,
                             tint: AppleColors.orange
                         ) {
                             vm.onlyLowStock.toggle()
                         }
                         ForEach(ComponentType.allCases) { type in
-                            CapsuleChip(text: type.label, selected: vm.typeFilter == type, tint: type.tint) {
+                            CapsuleChip(text: AppCopy.componentType(type, language), selected: vm.typeFilter == type, tint: type.tint) {
                                 vm.typeFilter = vm.typeFilter == type ? nil : type
                             }
                         }
                     }
                     .plainCardRow()
 
-                    Picker("排序", selection: $vm.sortMode) {
+                    Picker(AppCopy.text("sort_recent", language), selection: $vm.sortMode) {
                         ForEach(SortMode.allCases) { mode in
-                            Text(mode.label).tag(mode)
+                            Text(AppCopy.sortMode(mode, language)).tag(mode)
                         }
                     }
                     .pickerStyle(.segmented)
@@ -65,10 +65,10 @@ struct InventoryScreen: View {
                 if items.isEmpty {
                     Section {
                         EmptyState(
-                            title: vm.allComponents.isEmpty ? "还没有元件" : "没有匹配的结果",
+                            title: AppCopy.text(vm.allComponents.isEmpty ? "empty_components" : "no_results", language),
                             subtitle: vm.allComponents.isEmpty
-                                ? "点击右上角 + 添加第一颗元件，登记型号、数量和存放位置。"
-                                : "换个关键词，或清除类型筛选试试。"
+                                ? AppCopy.text("empty_components_hint", language)
+                                : AppCopy.text("no_results_hint", language)
                         )
                         .plainCardRow()
                     }
@@ -86,9 +86,9 @@ struct InventoryScreen: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Arxan ECM")
+            .navigationTitle(AppCopy.text("inventory", language))
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $vm.query, prompt: "搜索型号、参数、封装")
+            .searchable(text: $vm.query, prompt: AppCopy.text("search_inventory", language))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -97,7 +97,7 @@ struct InventoryScreen: View {
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .accessibilityLabel("添加元件")
+                    .accessibilityLabel(AppCopy.text("add_component", language))
                 }
             }
             .ecmNavigationDestinations()
@@ -115,7 +115,7 @@ struct InventoryScreen: View {
     private func subtitle(for row: ComponentWithLocation) -> String {
         [
             row.component.displaySubtitle.isBlank ? nil : row.component.displaySubtitle,
-            row.slotText ?? "未分配位置"
+            row.slotText ?? AppCopy.text("unassigned_location", language)
         ]
         .compactMap { $0 }
         .joined(separator: "  ·  ")

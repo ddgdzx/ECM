@@ -25,10 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ecm.inventory.ui.EcmViewModel
+import com.ecm.inventory.ui.LocalAppLanguage
+import com.ecm.inventory.ui.appFormat
+import com.ecm.inventory.ui.appText
+import com.ecm.inventory.ui.componentTypeText
 import com.ecm.inventory.ui.components.ComponentBadge
 import com.ecm.inventory.ui.components.CupertinoNavBar
 import com.ecm.inventory.ui.components.InsetSection
-import com.ecm.inventory.ui.components.LargeTitle
 import com.ecm.inventory.ui.components.RowSeparator
 import com.ecm.inventory.ui.components.SettingsRow
 import com.ecm.inventory.ui.theme.AppleText
@@ -41,6 +44,7 @@ fun StatsScreen(
     contentPadding: PaddingValues
 ) {
     val colors = AppleTheme.colors
+    val language = LocalAppLanguage.current
     val components by vm.allComponentsState.collectAsState()
     val locations by vm.locations.collectAsState()
 
@@ -63,15 +67,13 @@ fun StatsScreen(
             .background(colors.groupedBackground)
     ) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-        CupertinoNavBar(title = "概览", showTitle = false)
+        CupertinoNavBar(title = appText("overview", language), showTitle = true, showSeparator = true)
 
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 8.dp, bottom = contentPadding.calculateBottomPadding() + 24.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
-            item { LargeTitle("概览") }
-
             item {
                 Row(
                     Modifier
@@ -79,8 +81,8 @@ fun StatsScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    StatTile("元件种类", "${components.size}", colors.blue, Modifier.weight(1f))
-                    StatTile("库存总数", "$totalQty", colors.green, Modifier.weight(1f))
+                    StatTile(appText("component_types", language), "${components.size}", colors.blue, Modifier.weight(1f))
+                    StatTile(appText("total_stock", language), "$totalQty", colors.green, Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(
@@ -89,18 +91,18 @@ fun StatsScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    StatTile("库存偏低", "${lowStock.size}", colors.orange, Modifier.weight(1f))
-                    StatTile("格口占用", "$usedSlots/$totalSlots", colors.purple, Modifier.weight(1f))
+                    StatTile(appText("low_stock", language), "${lowStock.size}", colors.orange, Modifier.weight(1f))
+                    StatTile(appText("slot_usage", language), "$usedSlots/$totalSlots", colors.purple, Modifier.weight(1f))
                 }
             }
 
             if (lowStock.isNotEmpty()) {
                 item {
-                    InsetSection(header = "需要补货", footer = "数量低于预警值的元件会出现在这里。") {
+                    InsetSection(header = appText("restock_needed", language), footer = appText("restock_hint", language)) {
                         lowStock.take(8).forEachIndexed { i, c ->
                             SettingsRow(
                                 title = c.displayTitle,
-                                subtitle = c.displaySubtitle.ifBlank { c.typeEnum.label },
+                                subtitle = c.displaySubtitle.ifBlank { componentTypeText(c.typeEnum, language) },
                                 leading = { ComponentBadge(c.typeEnum) },
                                 minHeight = 56.dp,
                                 showChevron = true,
@@ -121,12 +123,12 @@ fun StatsScreen(
 
             if (byType.isNotEmpty()) {
                 item {
-                    InsetSection(header = "类型分布") {
+                    InsetSection(header = appText("type_distribution", language)) {
                         Column(Modifier.padding(16.dp)) {
                             byType.forEachIndexed { index, (type, count) ->
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        type.label,
+                                        componentTypeText(type, language),
                                         style = AppleText.footnote,
                                         color = colors.label,
                                         modifier = Modifier.width(76.dp)
@@ -153,11 +155,11 @@ fun StatsScreen(
 
             if (unassigned.isNotEmpty()) {
                 item {
-                    InsetSection(header = "未分配位置（${unassigned.size}）") {
+                    InsetSection(header = appFormat("unassigned_count", language, unassigned.size)) {
                         unassigned.take(6).forEachIndexed { i, c ->
                             SettingsRow(
                                 title = c.displayTitle,
-                                subtitle = c.typeEnum.label,
+                                subtitle = componentTypeText(c.typeEnum, language),
                                 leading = { ComponentBadge(c.typeEnum) },
                                 minHeight = 56.dp,
                                 showChevron = true,
@@ -172,7 +174,7 @@ fun StatsScreen(
             item {
                 Box(Modifier.padding(horizontal = 16.dp)) {
                     Text(
-                        "数据保存在本机数据库中，不会上传。",
+                        appText("data_storage_note", language),
                         style = AppleText.caption,
                         color = colors.tertiaryLabel
                     )

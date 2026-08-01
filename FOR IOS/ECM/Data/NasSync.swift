@@ -73,13 +73,15 @@ struct NasCredentials {
         let raw = serverAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         let candidate = raw.contains("://") ? raw : "https://\(raw)"
         guard var parts = URLComponents(string: candidate), let host = parts.host, !host.isEmpty else { return nil }
-        parts.scheme = "https"
+        guard parts.scheme == "https" else { return nil }
         parts.port = port
-        parts.path = "/file/ArxanECM/ecm-data.json"
+        let rootPath = parts.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let root = rootPath.isEmpty ? "" : "/\(rootPath)"
+        parts.path = "\(root)/ArxanECM/ecm-data.json"
         parts.query = nil
         parts.fragment = nil
         guard let fileURL = parts.url else { return nil }
-        parts.path = "/file/ArxanECM/"
+        parts.path = "\(root)/ArxanECM/"
         guard let directoryURL = parts.url else { return nil }
         return NasConfiguration(host: host, username: username, password: password, fileURL: fileURL, directoryURL: directoryURL)
     }

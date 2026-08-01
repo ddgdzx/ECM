@@ -103,7 +103,15 @@ fun SettingsScreen(
                     header = appText("nas_sync", language),
                     footer = appText("nas_footer", language)
                 ) {
-                    if (!nasConfigured) {
+                    if (!nasConfigured || nasState is NasSyncState.Failed) {
+                        if (nasState is NasSyncState.Failed) {
+                            Text(
+                                appText("nas_failed", language),
+                                style = AppleText.footnote,
+                                color = colors.red,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
                         OutlinedTextField(
                             value = nasServer,
                             onValueChange = { nasServer = it },

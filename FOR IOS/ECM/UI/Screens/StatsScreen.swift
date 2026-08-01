@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StatsScreen: View {
+    @Environment(\.appLanguage) private var language
     @EnvironmentObject private var vm: EcmViewModel
     @State private var path: [Route] = []
 
@@ -43,12 +44,12 @@ struct StatsScreen: View {
                 Section {
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
-                            StatTile(title: "元件种类", value: "\(components.count)", tint: AppleColors.blue)
-                            StatTile(title: "库存总数", value: "\(totalQty)", tint: AppleColors.green)
+                            StatTile(title: AppCopy.text("component_types", language), value: "\(components.count)", tint: AppleColors.blue)
+                            StatTile(title: AppCopy.text("total_stock", language), value: "\(totalQty)", tint: AppleColors.green)
                         }
                         HStack(spacing: 12) {
-                            StatTile(title: "库存偏低", value: "\(lowStock.count)", tint: AppleColors.orange)
-                            StatTile(title: "格口占用", value: "\(usedSlots)/\(totalSlots)", tint: AppleColors.purple)
+                            StatTile(title: AppCopy.text("low_stock", language), value: "\(lowStock.count)", tint: AppleColors.orange)
+                            StatTile(title: AppCopy.text("slot_usage", language), value: "\(usedSlots)/\(totalSlots)", tint: AppleColors.purple)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -61,24 +62,24 @@ struct StatsScreen: View {
                             NavigationLink(value: Route.componentDetail(c.id)) {
                                 ComponentRow(
                                     component: c,
-                                    subtitleOverride: c.displaySubtitle.ifBlank(c.typeEnum.label),
+                                    subtitleOverride: c.displaySubtitle.ifBlank(AppCopy.componentType(c.typeEnum, language)),
                                     trailingStyle: .lowStock
                                 )
                             }
                         }
                     } header: {
-                        Text("需要补货")
+                        Text(AppCopy.text("restock_needed", language))
                     } footer: {
-                        Text("数量低于预警值的元件会出现在这里。")
+                        Text(AppCopy.text("restock_hint", language))
                     }
                 }
 
                 if !byType.isEmpty {
-                    Section("类型分布") {
+                    Section(AppCopy.text("type_distribution", language)) {
                         VStack(spacing: 10) {
                             ForEach(byType) { row in
                                 HStack(spacing: 10) {
-                                    Text(row.type.label)
+                                    Text(AppCopy.componentType(row.type, language))
                                         .font(AppleText.footnote)
                                         .foregroundStyle(AppleColors.label)
                                         .frame(width: 76, alignment: .leading)
@@ -95,12 +96,12 @@ struct StatsScreen: View {
                 }
 
                 if !unassigned.isEmpty {
-                    Section("未分配位置（\(unassigned.count)）") {
+                    Section(AppCopy.format("unassigned_count", language, unassigned.count)) {
                         ForEach(unassigned.prefix(6)) { c in
                             NavigationLink(value: Route.componentDetail(c.id)) {
                                 ComponentRow(
                                     component: c,
-                                    subtitleOverride: c.typeEnum.label,
+                                    subtitleOverride: AppCopy.componentType(c.typeEnum, language),
                                     trailingStyle: .hidden
                                 )
                             }
@@ -109,7 +110,7 @@ struct StatsScreen: View {
                 }
 
                 Section {
-                    Text("数据保存在本机数据库中，不会上传。")
+                    Text(AppCopy.text("data_storage_note", language))
                         .font(AppleText.caption)
                         .foregroundStyle(AppleColors.tertiaryLabel)
                         .padding(.horizontal, 16)
@@ -117,7 +118,8 @@ struct StatsScreen: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("概览")
+            .navigationTitle(AppCopy.text("overview", language))
+            .navigationBarTitleDisplayMode(.inline)
             .ecmNavigationDestinations()
         }
     }

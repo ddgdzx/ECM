@@ -47,6 +47,9 @@ import com.ecm.inventory.ui.EcmViewModel
 import com.ecm.inventory.ui.LocalAppLanguage
 import com.ecm.inventory.ui.SortMode
 import com.ecm.inventory.ui.appText
+import com.ecm.inventory.ui.appFormat
+import com.ecm.inventory.ui.componentTypeText
+import com.ecm.inventory.ui.sortModeText
 import com.ecm.inventory.ui.components.CapsuleChip
 import com.ecm.inventory.ui.components.ComponentBadge
 import com.ecm.inventory.ui.components.CupertinoNavBar
@@ -91,11 +94,11 @@ fun InventoryScreen(
     ) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         CupertinoNavBar(
-            title = "Arxan ECM",
+            title = appText("inventory", language),
             showTitle = true,
             showSeparator = true,
             trailing = {
-                NavIconButton(Icons.Rounded.Add, "添加元件", onAdd)
+                NavIconButton(Icons.Rounded.Add, appText("add_component", language), onAdd)
             }
         )
 
@@ -109,7 +112,7 @@ fun InventoryScreen(
         ) {
             item {
                 Text(
-                    "${all.size} 个条目 · 合计 $totalQty 件",
+                    appFormat("items_summary", language, all.size, totalQty),
                     style = AppleText.footnote,
                     color = colors.secondaryLabel,
                     modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 10.dp)
@@ -133,6 +136,7 @@ fun InventoryScreen(
                 CupertinoSearchField(
                     value = query,
                     onValueChange = { vm.query.value = it },
+                    placeholder = appText("search_inventory", language),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
                 Spacer(Modifier.height(12.dp))
@@ -146,16 +150,16 @@ fun InventoryScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CapsuleChip("全部", selected = typeFilter == null, onClick = { vm.typeFilter.value = null })
+                    CapsuleChip(appText("all", language), selected = typeFilter == null, onClick = { vm.typeFilter.value = null })
                     CapsuleChip(
-                        text = if (lowCount > 0) "库存偏低 $lowCount" else "库存偏低",
+                        text = if (lowCount > 0) appFormat("low_stock_count", language, lowCount) else appText("low_stock", language),
                         selected = onlyLow,
                         tint = colors.orange,
                         onClick = { vm.onlyLowStock.value = !onlyLow }
                     )
                     ComponentType.entries.forEach { type ->
                         CapsuleChip(
-                            text = type.label,
+                            text = componentTypeText(type, language),
                             selected = typeFilter == type,
                             tint = type.tint,
                             onClick = { vm.typeFilter.value = if (typeFilter == type) null else type }
@@ -167,7 +171,7 @@ fun InventoryScreen(
 
             item {
                 CupertinoSegmented(
-                    items = SortMode.entries.map { it.label },
+                    items = SortMode.entries.map { sortModeText(it, language) },
                     selectedIndex = SortMode.entries.indexOf(sortMode),
                     onSelect = { vm.sortMode.value = SortMode.entries[it] },
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -178,9 +182,8 @@ fun InventoryScreen(
             if (items.isEmpty()) {
                 item {
                     EmptyState(
-                        title = if (all.isEmpty()) "还没有元件" else "没有匹配的结果",
-                        subtitle = if (all.isEmpty()) "点击右上角 + 添加第一颗元件，登记型号、数量和存放位置。"
-                        else "换个关键词，或清除类型筛选试试。"
+                        title = appText(if (all.isEmpty()) "empty_components" else "no_results", language),
+                        subtitle = appText(if (all.isEmpty()) "empty_components_hint" else "no_results_hint", language)
                     )
                 }
             } else {
@@ -242,10 +245,11 @@ private fun QuickConsumptionCard(
 @Composable
 private fun ComponentRow(row: ComponentWithLocation, onClick: () -> Unit) {
     val colors = AppleTheme.colors
+    val language = LocalAppLanguage.current
     val c = row.component
     val subtitle = listOfNotNull(
         c.displaySubtitle.takeIf { it.isNotBlank() },
-        row.slotText ?: "未分配位置"
+        row.slotText ?: appText("unassigned_location", language)
     ).joinToString("  ·  ")
 
     SettingsRow(

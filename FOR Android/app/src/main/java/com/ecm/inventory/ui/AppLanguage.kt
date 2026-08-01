@@ -1,6 +1,7 @@
 package com.ecm.inventory.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import java.util.Locale
 
 enum class AppLanguage(val code: String, val displayName: String) {
     SIMPLIFIED_CHINESE("zh-Hans", "简体中文"),
@@ -21,6 +22,36 @@ private val copy = mapOf(
     "storage" to listOf("存储", "儲存", "Storage", "Almacén", "Lager"),
     "overview" to listOf("概览", "概覽", "Overview", "Resumen", "Übersicht"),
     "settings" to listOf("设置", "設定", "Settings", "Ajustes", "Einstellungen"),
+    "storage_positions" to listOf("存储位置", "儲存位置", "Storage locations", "Ubicaciones", "Lagerplätze"),
+    "items_summary" to listOf("%1$d 个条目 · 合计 %2$d 件", "%1$d 個項目 · 合計 %2$d 件", "%1$d items · %2$d total units", "%1$d artículos · %2$d unidades en total", "%1$d Einträge · insgesamt %2$d Stück"),
+    "all" to listOf("全部", "全部", "All", "Todos", "Alle"),
+    "low_stock" to listOf("库存偏低", "庫存偏低", "Low stock", "Existencias bajas", "Niedriger Bestand"),
+    "low_stock_count" to listOf("库存偏低 %1$d", "庫存偏低 %1$d", "Low stock %1$d", "Existencias bajas %1$d", "Niedriger Bestand %1$d"),
+    "sort_recent" to listOf("最近更新", "最近更新", "Recently updated", "Actualización reciente", "Zuletzt aktualisiert"),
+    "sort_name" to listOf("型号", "型號", "Model", "Modelo", "Modell"),
+    "sort_quantity" to listOf("库存数量", "庫存數量", "Stock quantity", "Cantidad", "Bestandsmenge"),
+    "search_inventory" to listOf("搜索型号、参数、封装", "搜尋型號、參數、封裝", "Search model, value, or package", "Buscar modelo, valor o encapsulado", "Modell, Wert oder Gehäuse suchen"),
+    "add_component" to listOf("添加元件", "新增元件", "Add component", "Añadir componente", "Bauteil hinzufügen"),
+    "empty_components" to listOf("还没有元件", "尚無元件", "No components yet", "Aún no hay componentes", "Noch keine Bauteile"),
+    "no_results" to listOf("没有匹配的结果", "沒有符合的結果", "No matching results", "No hay resultados", "Keine passenden Ergebnisse"),
+    "empty_components_hint" to listOf("点击右上角 + 添加第一颗元件，登记型号、数量和存放位置。", "點擊右上角 + 新增第一個元件，登記型號、數量和存放位置。", "Tap + to add your first component with its model, quantity, and location.", "Pulsa + para añadir el primer componente con modelo, cantidad y ubicación.", "Tippe auf +, um das erste Bauteil mit Modell, Menge und Lagerort anzulegen."),
+    "no_results_hint" to listOf("换个关键词，或清除类型筛选试试。", "更換關鍵字，或清除類型篩選。", "Try another keyword or clear the type filter.", "Prueba otra palabra o elimina el filtro de tipo.", "Versuche einen anderen Suchbegriff oder entferne den Typfilter."),
+    "unassigned_location" to listOf("未分配位置", "未分配位置", "No location", "Sin ubicación", "Kein Lagerort"),
+    "locations_summary" to listOf("共 %1$d 个容器 · %2$d 个格口", "共 %1$d 個容器 · %2$d 個格口", "%1$d containers · %2$d slots", "%1$d contenedores · %2$d espacios", "%1$d Behälter · %2$d Fächer"),
+    "new_location" to listOf("新建存储位置", "新增儲存位置", "New storage location", "Nueva ubicación", "Neuer Lagerort"),
+    "empty_locations" to listOf("还没有存储位置", "尚無儲存位置", "No storage locations yet", "Aún no hay ubicaciones", "Noch keine Lagerorte"),
+    "empty_locations_hint" to listOf("先建一个元件柜或贴片盒，设定层/行/列，之后就能把元件放进具体格口。", "先建立元件櫃或貼片盒並設定層／行／列，之後即可把元件放入指定格口。", "Create a cabinet or component box, set its layers, rows, and columns, then assign components to slots.", "Crea un armario o caja, define capas, filas y columnas y asigna componentes a los espacios.", "Lege einen Schrank oder eine Box mit Ebenen, Reihen und Spalten an und weise Bauteile den Fächern zu."),
+    "location_dimensions" to listOf("%1$s · %2$d层 × %3$d行 × %4$d列", "%1$s · %2$d層 × %3$d行 × %4$d列", "%1$s · %2$d layers × %3$d rows × %4$d columns", "%1$s · %2$d capas × %3$d filas × %4$d columnas", "%1$s · %2$d Ebenen × %3$d Reihen × %4$d Spalten"),
+    "types_count" to listOf("%1$d 种", "%1$d 種", "%1$d types", "%1$d tipos", "%1$d Typen"),
+    "slots_used" to listOf("已用 %1$d/%2$d", "已用 %1$d/%2$d", "%1$d/%2$d used", "%1$d/%2$d usados", "%1$d/%2$d belegt"),
+    "component_types" to listOf("元件种类", "元件種類", "Component types", "Tipos de componentes", "Bauteilarten"),
+    "total_stock" to listOf("库存总数", "庫存總數", "Total stock", "Existencias totales", "Gesamtbestand"),
+    "slot_usage" to listOf("格口占用", "格口佔用", "Slot usage", "Uso de espacios", "Fachbelegung"),
+    "restock_needed" to listOf("需要补货", "需要補貨", "Restock needed", "Reponer existencias", "Nachbestellen"),
+    "restock_hint" to listOf("数量低于预警值的元件会出现在这里。", "數量低於預警值的元件會顯示在此。", "Components below their warning level appear here.", "Aquí aparecen los componentes por debajo del nivel de alerta.", "Bauteile unterhalb des Warnbestands erscheinen hier."),
+    "type_distribution" to listOf("类型分布", "類型分佈", "Type distribution", "Distribución por tipo", "Typverteilung"),
+    "unassigned_count" to listOf("未分配位置（%1$d）", "未分配位置（%1$d）", "No location (%1$d)", "Sin ubicación (%1$d)", "Kein Lagerort (%1$d)"),
+    "data_storage_note" to listOf("数据优先保存在本机；配置 NAS 后会自动同步。", "資料優先儲存在本機；設定 NAS 後會自動同步。", "Data is stored locally first and syncs automatically after NAS setup.", "Los datos se guardan primero en el dispositivo y se sincronizan al configurar el NAS.", "Daten werden zuerst lokal gespeichert und nach der NAS-Einrichtung automatisch synchronisiert."),
     "quick_consume" to listOf("快速登记消耗", "快速登記消耗", "Quick consumption", "Registrar consumo", "Verbrauch buchen"),
     "quick_consume_hint" to listOf("选择元件并记录用途", "選擇元件並記錄用途", "Select a component and record its use", "Elige un componente y registra el uso", "Bauteil wählen und Zweck erfassen"),
     "start" to listOf("开始", "開始", "Start", "Empezar", "Start"),
@@ -41,7 +72,7 @@ private val copy = mapOf(
     "about" to listOf("关于", "關於", "About", "Acerca de", "Über"),
     "local_data" to listOf("数据保留本地副本，连接后同步到 NAS", "資料保留本機副本，連線後同步至 NAS", "Data stays available locally and syncs to NAS", "Los datos se guardan localmente y se sincronizan con el NAS", "Daten bleiben lokal verfügbar und werden mit dem NAS synchronisiert"),
     "nas_sync" to listOf("NAS 数据同步", "NAS 資料同步", "NAS data sync", "Sincronización NAS", "NAS-Datensynchronisierung"),
-    "nas_server" to listOf("服务器", "伺服器", "Server", "Servidor", "Server"),
+    "nas_server" to listOf("服务器或 WebDAV 地址", "伺服器或 WebDAV 位址", "Server or WebDAV address", "Servidor o dirección WebDAV", "Server- oder WebDAV-Adresse"),
     "nas_port" to listOf("WebDAV 端口", "WebDAV 連接埠", "WebDAV port", "Puerto WebDAV", "WebDAV-Port"),
     "nas_account" to listOf("账户", "帳戶", "Account", "Cuenta", "Konto"),
     "nas_password" to listOf("输入 NAS 密码", "輸入 NAS 密碼", "Enter NAS password", "Introduce la contraseña del NAS", "NAS-Passwort eingeben"),
@@ -50,12 +81,47 @@ private val copy = mapOf(
     "nas_not_connected" to listOf("未连接", "未連線", "Not connected", "Sin conexión", "Nicht verbunden"),
     "nas_syncing" to listOf("正在同步…", "正在同步…", "Syncing…", "Sincronizando…", "Synchronisieren…"),
     "nas_synced" to listOf("已同步", "已同步", "Synced", "Sincronizado", "Synchronisiert"),
-    "nas_failed" to listOf("同步失败，请检查密码和网络", "同步失敗，請檢查密碼與網路", "Sync failed. Check the password and network", "Error de sincronización. Comprueba la contraseña y la red", "Synchronisierung fehlgeschlagen. Passwort und Netzwerk prüfen"),
+    "nas_failed" to listOf("连接失败，请确认地址、密码及 WebDAV 端口（fnOS 通常为 5006）", "連線失敗，請確認位址、密碼及 WebDAV 連接埠（fnOS 通常為 5006）", "Connection failed. Check the address, password, and WebDAV port (usually 5006 on fnOS)", "Error de conexión. Comprueba la dirección, la contraseña y el puerto WebDAV (normalmente 5006 en fnOS)", "Verbindung fehlgeschlagen. Adresse, Passwort und WebDAV-Port prüfen (bei fnOS meist 5006)"),
     "nas_download" to listOf("从 NAS 获取最新数据", "從 NAS 取得最新資料", "Get latest data from NAS", "Obtener datos del NAS", "Neueste Daten vom NAS laden"),
     "nas_upload" to listOf("立即备份到 NAS", "立即備份至 NAS", "Back up to NAS now", "Crear copia en el NAS", "Jetzt auf NAS sichern"),
     "nas_disconnect" to listOf("断开 NAS", "中斷 NAS 連線", "Disconnect NAS", "Desconectar NAS", "NAS trennen"),
-    "nas_footer" to listOf("密码仅保存在本机安全存储中。连接后修改会自动备份，断网时仍可使用本地数据。", "密碼僅儲存在本機安全儲存空間。連線後修改會自動備份，離線時仍可使用本機資料。", "The password stays in secure device storage. Changes sync automatically; local data remains available offline.", "La contraseña se guarda de forma segura en el dispositivo. Los cambios se sincronizan automáticamente y los datos siguen disponibles sin conexión.", "Das Passwort bleibt im sicheren Gerätespeicher. Änderungen werden automatisch synchronisiert; lokale Daten bleiben offline verfügbar.")
+    "nas_footer" to listOf("请输入 HTTPS WebDAV 服务地址和端口，而不是 NAS 管理页面端口。地址可包含 https:// 或 WebDAV 子路径。密码仅保存在本机安全存储中。", "請輸入 HTTPS WebDAV 服務位址與連接埠，而非 NAS 管理頁面連接埠。位址可包含 https:// 或 WebDAV 子路徑。密碼僅儲存在本機安全儲存空間。", "Enter the HTTPS WebDAV service address and port, not the NAS admin-page port. The address may include https:// or a WebDAV subpath. The password stays in secure device storage.", "Introduce la dirección y el puerto HTTPS de WebDAV, no los de la página de administración. La dirección puede incluir https:// o una subruta WebDAV. La contraseña se guarda de forma segura.", "HTTPS-WebDAV-Adresse und -Port eingeben, nicht den Port der NAS-Verwaltung. Die Adresse darf https:// oder einen WebDAV-Unterpfad enthalten. Das Passwort bleibt sicher auf dem Gerät."),
+    "type_resistor" to listOf("电阻", "電阻", "Resistor", "Resistencia", "Widerstand"),
+    "type_capacitor" to listOf("电容", "電容", "Capacitor", "Condensador", "Kondensator"),
+    "type_inductor" to listOf("电感", "電感", "Inductor", "Inductor", "Induktivität"),
+    "type_diode" to listOf("二极管", "二極體", "Diode", "Diodo", "Diode"),
+    "type_led" to listOf("发光二极管", "發光二極體", "LED", "LED", "LED"),
+    "type_transistor" to listOf("三极管", "電晶體", "Transistor", "Transistor", "Transistor"),
+    "type_ic" to listOf("集成电路", "積體電路", "Integrated circuit", "Circuito integrado", "Integrierter Schaltkreis"),
+    "type_crystal" to listOf("晶振", "晶振", "Crystal", "Cristal", "Quarz"),
+    "type_connector" to listOf("连接器", "連接器", "Connector", "Conector", "Steckverbinder"),
+    "type_switch" to listOf("开关按键", "開關按鍵", "Switch", "Interruptor", "Schalter"),
+    "type_sensor" to listOf("传感器", "感測器", "Sensor", "Sensor", "Sensor"),
+    "type_module" to listOf("模块", "模組", "Module", "Módulo", "Modul"),
+    "type_power" to listOf("电源器件", "電源元件", "Power component", "Componente de potencia", "Leistungsbauteil"),
+    "type_mechanical" to listOf("结构件", "結構件", "Mechanical", "Mecánico", "Mechanik"),
+    "type_other" to listOf("其他", "其他", "Other", "Otro", "Sonstige"),
+    "kind_cabinet" to listOf("元件柜", "元件櫃", "Component cabinet", "Armario", "Bauteilschrank"),
+    "kind_box" to listOf("元件盒", "元件盒", "Component box", "Caja", "Bauteilbox"),
+    "kind_drawer" to listOf("抽屉", "抽屜", "Drawer", "Cajón", "Schublade"),
+    "kind_shelf" to listOf("货架", "貨架", "Shelf", "Estante", "Regal"),
+    "kind_bag" to listOf("防静电袋盒", "防靜電袋盒", "ESD bag box", "Caja para bolsas ESD", "ESD-Beutelbox")
 )
 
 fun appText(key: String, language: AppLanguage): String =
     copy[key]?.getOrNull(language.ordinal) ?: copy[key]?.firstOrNull() ?: key
+
+fun appFormat(key: String, language: AppLanguage, vararg values: Any): String =
+    String.format(Locale.forLanguageTag(language.code), appText(key, language), *values)
+
+fun componentTypeText(type: com.ecm.inventory.data.ComponentType, language: AppLanguage): String =
+    appText("type_${type.name.lowercase()}", language)
+
+fun locationKindText(kind: com.ecm.inventory.data.LocationKind, language: AppLanguage): String =
+    appText("kind_${kind.name.lowercase()}", language)
+
+fun sortModeText(mode: SortMode, language: AppLanguage): String = when (mode) {
+    SortMode.RECENT -> appText("sort_recent", language)
+    SortMode.NAME -> appText("sort_name", language)
+    SortMode.QUANTITY -> appText("sort_quantity", language)
+}

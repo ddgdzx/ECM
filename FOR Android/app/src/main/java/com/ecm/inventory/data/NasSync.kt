@@ -5,12 +5,12 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 import java.net.URI
-import java.util.Base64
-import javax.net.ssl.HostnameVerifier
-import javax.net.ssl.HttpsURLConnection
+import okhttp3.Credentials
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
@@ -67,14 +67,18 @@ class NasCredentials(context: Context) {
         get() {
             val password = password ?: return null
             if (username.isBlank() || port !in 1..65535) return null
-            val candidate = serverAddress.trim().let { if (it.contains("://")) it else "https://$it" }
-            val host = runCatching { URI(candidate).host }.getOrNull()?.takeIf { it.isNotBlank() } ?: return null
+            val raw = serverAddress.trim()
+            val candidate = if (raw.contains("://")) raw else "https://$raw"
+            val parsed = runCatching { URI(candidate) }.getOrNull() ?: return null
+            val host = parsed.host?.takeIf { it.isNotBlank() } ?: return null
+            val scheme = parsed.scheme?.lowercase()?.takeIf { it == "https" } ?: return null
+            val rootPath = parsed.path.orEmpty().trim('/').let { if (it.isBlank()) "" else "/$it" }
             return NasConfiguration(
                 host = host,
                 username = username,
                 password = password,
-                fileUrl = URI("https", null, host, port, "/file/ArxanECM/ecm-data.json", null, null).toURL(),
-                directoryUrl = URI("https", null, host, port, "/file/ArxanECM/", null, null).toURL()
+                fileUrl = URI(scheme, null, host, port, "$rootPath/ArxanECM/ecm-data.json", null, null).toString(),
+                directoryUrl = URI(scheme, null, host, port, "$rootPath/ArxanECM/", null, null).toString()
             )
         }
 }
@@ -83,8 +87,8 @@ data class NasConfiguration(
     val host: String,
     val username: String,
     val password: String,
-    val fileUrl: URL,
-    val directoryUrl: URL
+    val fileUrl: String,
+    val directoryUrl: String
 )
 
 class NasSyncClient {
@@ -97,42 +101,48 @@ class NasSyncClient {
         init(null, arrayOf<TrustManager>(trustManager), java.security.SecureRandom())
     }.socketFactory
 
-    private fun connection(method: String, url: URL, configuration: NasConfiguration): HttpsURLConnection {
-        return (url.openConnection() as HttpsURLConnection).apply {
-            requestMethod = method
-            connectTimeout = 15_000
-            readTimeout = 20_000
-            sslSocketFactory = this@NasSyncClient.sslSocketFactory
-            hostnameVerifier = HostnameVerifier { host, _ -> host == configuration.host }
-            setRequestProperty("Content-Type", "application/json")
-            val token = Base64.getEncoder().encodeToString("${configuration.username}:${configuration.password}".toByteArray())
-            setRequestProperty("Authorization", "Basic $token")
-        }
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+        .sslSocketFactory(sslSocketFactory, trustManager)
+        .hostnameVerifier { _, _ -> true }
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .build()
+
+    private fun request(method: String, url: String, configuration: NasConfiguration, body: ByteArray? = null): Request {
+        val requestBody = body?.toRequestBody("application/json; charset=utf-8".toMediaType())
+        return Request.Builder()
+            .url(url)
+            .header("Authorization", Credentials.basic(configuration.username, configuration.password))
+            .header("Accept", "application/json")
+            .method(method, requestBody)
+            .build()
     }
 
     private fun ensureDirectory(configuration: NasConfiguration) {
-        val connection = connection("MKCOL", configuration.directoryUrl, configuration)
-        val code = connection.responseCode
-        connection.disconnect()
-        if (code != 201 && code != 405) error("HTTP $code")
+        client.newCall(request("MKCOL", configuration.directoryUrl, configuration)).execute().use { response ->
+            if (response.code != 201 && response.code != 405) error("HTTP ${response.code}")
+        }
     }
 
     fun upload(snapshot: EcmSnapshot, configuration: NasConfiguration) {
         ensureDirectory(configuration)
-        val connection = connection("PUT", configuration.fileUrl, configuration).apply { doOutput = true }
-        connection.outputStream.use { it.write(snapshot.toJson().toString().toByteArray()) }
-        if (connection.responseCode !in 200..299) error("HTTP ${connection.responseCode}")
-        connection.disconnect()
+        val body = snapshot.toJson().toString().toByteArray()
+        client.newCall(request("PUT", configuration.fileUrl, configuration, body)).execute().use { response ->
+            if (!response.isSuccessful) error("HTTP ${response.code}")
+        }
     }
 
     fun download(configuration: NasConfiguration): EcmSnapshot? {
-        val connection = connection("GET", configuration.fileUrl, configuration)
-        return when (val code = connection.responseCode) {
-            404 -> null
-            in 200..299 -> connection.inputStream.bufferedReader().use { snapshotFromJson(JSONObject(it.readText())) }
-            HttpURLConnection.HTTP_UNAUTHORIZED -> error("unauthorized")
-            else -> error("HTTP $code")
-        }.also { connection.disconnect() }
+        return client.newCall(request("GET", configuration.fileUrl, configuration)).execute().use { response ->
+            when {
+                response.code == 404 -> null
+                response.code == 401 || response.code == 403 -> error("unauthorized")
+                response.isSuccessful -> snapshotFromJson(JSONObject(response.body?.string().orEmpty()))
+                else -> error("HTTP ${response.code}")
+            }
+        }
     }
 }
 

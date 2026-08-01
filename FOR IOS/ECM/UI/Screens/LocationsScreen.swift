@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LocationsScreen: View {
+    @Environment(\.appLanguage) private var language
     @EnvironmentObject private var vm: EcmViewModel
     @State private var path: [Route] = []
     @State private var showEdit = false
@@ -11,7 +12,7 @@ struct LocationsScreen: View {
         NavigationStack(path: $path) {
             List {
                 Section {
-                    Text("共 \(vm.locations.count) 个容器 · \(totalSlots) 个格口")
+                    Text(AppCopy.format("locations_summary", language, vm.locations.count, totalSlots))
                         .font(AppleText.footnote)
                         .foregroundStyle(AppleColors.secondaryLabel)
                         .padding(.horizontal, 16)
@@ -21,10 +22,10 @@ struct LocationsScreen: View {
                 if vm.locations.isEmpty {
                     Section {
                         EmptyState(
-                            title: "还没有存储位置",
-                            subtitle: "先建一个元件柜或贴片盒，设定层/行/列，之后就能把元件放进具体格口。"
+                            title: AppCopy.text("empty_locations", language),
+                            subtitle: AppCopy.text("empty_locations_hint", language)
                         ) {
-                            FilledActionButton(text: "新建存储位置") {
+                            FilledActionButton(text: AppCopy.text("new_location", language)) {
                                 vm.startLocationEdit(nil)
                                 showEdit = true
                             }
@@ -40,7 +41,7 @@ struct LocationsScreen: View {
                         Button {
                             path.append(.locationDetail(loc.id))
                         } label: {
-                            LocationCard(location: loc, inside: vm.componentsIn(loc.id))
+                            LocationCard(location: loc, inside: vm.componentsIn(loc.id), language: language)
                         }
                         .buttonStyle(.plain)
                         .edgeToEdgeRow()
@@ -48,7 +49,8 @@ struct LocationsScreen: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("存储位置")
+            .navigationTitle(AppCopy.text("storage_positions", language))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -57,7 +59,7 @@ struct LocationsScreen: View {
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .accessibilityLabel("新建位置")
+                    .accessibilityLabel(AppCopy.text("new_location", language))
                 }
             }
             .ecmNavigationDestinations()
@@ -71,6 +73,7 @@ struct LocationsScreen: View {
 private struct LocationCard: View {
     let location: LocationEntity
     let inside: [ComponentEntity]
+    let language: AppLanguage
 
     private var bins: [Slot: BinStyle] {
         var result: [Slot: BinStyle] = [:]
@@ -100,17 +103,17 @@ private struct LocationCard: View {
                     Text(location.name)
                         .font(AppleText.headline)
                         .foregroundStyle(AppleColors.label)
-                    Text("\(location.kindEnum.label) · \(location.layers)层 × \(location.rows)行 × \(location.cols)列")
+                    Text(AppCopy.format("location_dimensions", language, AppCopy.locationKind(location.kindEnum, language), location.layers, location.rows, location.cols))
                         .font(AppleText.footnote)
                         .foregroundStyle(AppleColors.secondaryLabel)
                 }
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 0) {
-                    Text("\(inside.count) 种")
+                    Text(AppCopy.format("types_count", language, inside.count))
                         .font(AppleText.body)
                         .fontWeight(.semibold)
                         .foregroundStyle(AppleColors.label)
-                    Text("已用 \(usedSlots)/\(location.slotCount)")
+                    Text(AppCopy.format("slots_used", language, usedSlots, location.slotCount))
                         .font(AppleText.caption)
                         .foregroundStyle(AppleColors.tertiaryLabel)
                 }

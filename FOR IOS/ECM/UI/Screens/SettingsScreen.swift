@@ -63,7 +63,12 @@ struct SettingsScreen: View {
                 }
 
                 Section {
-                    if !vm.isNasConfigured {
+                    if !vm.isNasConfigured || isNasFailed {
+                        if isNasFailed {
+                            Text(AppCopy.text("nas_failed", language))
+                                .font(AppleText.footnote)
+                                .foregroundStyle(AppleColors.red)
+                        }
                         TextField(AppCopy.text("nas_server", language), text: $nasServer)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
@@ -121,5 +126,10 @@ struct SettingsScreen: View {
         case .synced: return AppCopy.text("nas_synced", language)
         case .failed: return AppCopy.text("nas_failed", language)
         }
+    }
+
+    private var isNasFailed: Bool {
+        if case .failed = vm.nasSyncState { return true }
+        return false
     }
 }

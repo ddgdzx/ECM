@@ -19,14 +19,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,7 +38,10 @@ import com.ecm.inventory.ui.EcmViewModel
 import com.ecm.inventory.ui.components.CupertinoNavBar
 import com.ecm.inventory.ui.components.EmptyState
 import com.ecm.inventory.ui.components.FilledActionButton
-import com.ecm.inventory.ui.components.LargeTitle
+import com.ecm.inventory.ui.LocalAppLanguage
+import com.ecm.inventory.ui.appFormat
+import com.ecm.inventory.ui.appText
+import com.ecm.inventory.ui.locationKindText
 import com.ecm.inventory.ui.components.NavIconButton
 import com.ecm.inventory.ui.iso.BinStyle
 import com.ecm.inventory.ui.iso.IsoStorageView
@@ -55,12 +56,9 @@ fun LocationsScreen(
     contentPadding: PaddingValues
 ) {
     val colors = AppleTheme.colors
+    val language = LocalAppLanguage.current
     val locations by vm.locations.collectAsState()
     val components by vm.allComponentsState.collectAsState()
-    val listState = rememberLazyListState()
-    val collapsed by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 36 }
-    }
 
     Column(
         Modifier
@@ -69,38 +67,34 @@ fun LocationsScreen(
     ) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         CupertinoNavBar(
-            title = "存储位置",
-            showTitle = collapsed,
-            showSeparator = collapsed,
-            trailing = { NavIconButton(Icons.Rounded.Add, "新建位置", onAdd) }
+            title = appText("storage_positions", language),
+            showTitle = true,
+            showSeparator = true,
+            trailing = { NavIconButton(Icons.Rounded.Add, appText("new_location", language), onAdd) }
         )
 
         LazyColumn(
-            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 8.dp, bottom = contentPadding.calculateBottomPadding() + 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Column {
-                    LargeTitle("存储位置")
-                    Text(
-                        "共 ${locations.size} 个容器 · ${locations.sumOf { it.slotCount }} 个格口",
-                        style = AppleText.footnote,
-                        color = colors.secondaryLabel,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
+                Text(
+                    appFormat("locations_summary", language, locations.size, locations.sumOf { it.slotCount }),
+                    style = AppleText.footnote,
+                    color = colors.secondaryLabel,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
 
             if (locations.isEmpty()) {
                 item {
                     EmptyState(
-                        title = "还没有存储位置",
-                        subtitle = "先建一个元件柜或贴片盒，设定层/行/列，之后就能把元件放进具体格口。",
+                        title = appText("empty_locations", language),
+                        subtitle = appText("empty_locations_hint", language),
                         action = {
                             Box(Modifier.padding(horizontal = 24.dp)) {
-                                FilledActionButton("新建存储位置", onAdd)
+                                FilledActionButton(appText("new_location", language), onAdd)
                             }
                         }
                     )
@@ -116,6 +110,7 @@ fun LocationsScreen(
                     }.toMap(),
                     usedSlots = inside.flatMap { it.slots }.distinct().size,
                     itemCount = inside.size,
+                    language = language,
                     onClick = { onOpen(loc.id) }
                 )
             }
@@ -129,6 +124,7 @@ private fun LocationCard(
     bins: Map<com.ecm.inventory.data.Slot, BinStyle>,
     usedSlots: Int,
     itemCount: Int,
+    language: com.ecm.inventory.ui.AppLanguage,
     onClick: () -> Unit
 ) {
     val colors = AppleTheme.colors
@@ -164,19 +160,19 @@ private fun LocationCard(
                 Text(location.name, style = AppleText.headline, color = colors.label)
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    "${location.kindEnum.label} · ${location.layers}层 × ${location.rows}行 × ${location.cols}列",
+                    appFormat("location_dimensions", language, locationKindText(location.kindEnum, language), location.layers, location.rows, location.cols),
                     style = AppleText.footnote,
                     color = colors.secondaryLabel
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    "$itemCount 种",
+                    appFormat("types_count", language, itemCount),
                     style = AppleText.body.copy(fontWeight = FontWeight.SemiBold),
                     color = colors.label
                 )
                 Text(
-                    "已用 $usedSlots/${location.slotCount}",
+                    appFormat("slots_used", language, usedSlots, location.slotCount),
                     style = AppleText.caption,
                     color = colors.tertiaryLabel
                 )
