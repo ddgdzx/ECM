@@ -124,7 +124,8 @@ fun LocationDetailScreen(
                             bins = bySlot.mapValues { (_, list) ->
                                 BinStyle(
                                     fill = list.first().typeEnum.tint,
-                                    count = list.sumOf { it.quantity }
+                                    count = list.sumOf { it.quantity },
+                                    calloutLabel = list.joinToString("、") { it.displayTitle }
                                 )
                             },
                             highlight = selected,

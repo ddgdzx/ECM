@@ -6,6 +6,8 @@ struct BinStyle {
     var fill: Color
     var count: Int = 0
     var label: String?
+    /// 选中格口上方气泡的文字；未提供时回退到格口编号。
+    var calloutLabel: String?
 }
 
 /// 视角状态，抽出来是为了让外部按钮（复位、俯视等）也能改。
@@ -375,7 +377,8 @@ struct IsoScene {
             Path(ellipseIn: CGRect(x: tip.x - 3.5, y: tip.y - 3.5, width: 7, height: 7)),
             with: .color(labelColor.opacity(0.9))
         )
-        let label = Text(highlight.label())
+        let calloutText = (item.style?.calloutLabel).flatMap { $0.isBlank ? nil : $0 } ?? highlight.label()
+        let label = Text(calloutText)
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(Color.white)
         let measured = context.resolve(label).measure(in: CGSize(width: 400, height: 100))

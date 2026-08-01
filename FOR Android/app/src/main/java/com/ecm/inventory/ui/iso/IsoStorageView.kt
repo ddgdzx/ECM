@@ -45,7 +45,9 @@ import kotlin.math.sin
 data class BinStyle(
     val fill: Color,
     val count: Int = 0,
-    val label: String? = null
+    val label: String? = null,
+    /** 选中格口上方气泡的文字；未提供时回退到格口编号。 */
+    val calloutLabel: String? = null
 )
 
 /** 视角状态，抽出来是为了让外部按钮（复位、俯视等）也能改。 */
@@ -373,7 +375,7 @@ private fun DrawScope.drawCabinet(
             val bubbleAnchor = Offset(tip.x, tip.y - 26f - 6f * sin(pulse * 2f * PI.toFloat()))
             drawLine(labelColor.copy(alpha = 0.5f), tip, bubbleAnchor, strokeWidth = 1.5f)
             drawCircle(labelColor.copy(alpha = 0.9f), radius = 3.5f, center = tip)
-            val text = highlight.label()
+            val text = item.style?.calloutLabel?.takeIf { it.isNotBlank() } ?: highlight.label()
             val layout = measurer.measure(text, TextStyle(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color.White))
             val bw = layout.size.width + 16f
             val bh = layout.size.height + 8f

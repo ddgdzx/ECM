@@ -168,7 +168,8 @@ struct LocationDetailScreen: View {
         bySlot.mapValues { list in
             BinStyle(
                 fill: list.first?.typeEnum.tint ?? AppleColors.gray,
-                count: list.reduce(0) { $0 + $1.quantity }
+                count: list.reduce(0) { $0 + $1.quantity },
+                calloutLabel: list.map(\.displayTitle).joined(separator: "、")
             )
         }
     }
