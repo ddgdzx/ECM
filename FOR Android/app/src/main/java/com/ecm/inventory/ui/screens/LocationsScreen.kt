@@ -38,6 +38,7 @@ import com.ecm.inventory.ui.EcmViewModel
 import com.ecm.inventory.ui.components.CupertinoNavBar
 import com.ecm.inventory.ui.components.EmptyState
 import com.ecm.inventory.ui.components.FilledActionButton
+import com.ecm.inventory.ui.components.LargeTitle
 import com.ecm.inventory.ui.LocalAppLanguage
 import com.ecm.inventory.ui.appFormat
 import com.ecm.inventory.ui.appText
@@ -68,8 +69,8 @@ fun LocationsScreen(
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         CupertinoNavBar(
             title = appText("storage_positions", language),
-            showTitle = true,
-            showSeparator = true,
+            showTitle = false,
+            showSeparator = false,
             trailing = { NavIconButton(Icons.Rounded.Add, appText("new_location", language), onAdd) }
         )
 
@@ -79,12 +80,15 @@ fun LocationsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Text(
-                    appFormat("locations_summary", language, locations.size, locations.sumOf { it.slotCount }),
-                    style = AppleText.footnote,
-                    color = colors.secondaryLabel,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                Column {
+                    LargeTitle(appText("storage_positions", language))
+                    Text(
+                        appFormat("locations_summary", language, locations.size, locations.sumOf { it.slotCount }),
+                        style = AppleText.footnote,
+                        color = colors.secondaryLabel,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
             }
 
             if (locations.isEmpty()) {

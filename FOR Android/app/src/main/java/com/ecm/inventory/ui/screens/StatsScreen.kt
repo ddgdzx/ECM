@@ -32,6 +32,7 @@ import com.ecm.inventory.ui.componentTypeText
 import com.ecm.inventory.ui.components.ComponentBadge
 import com.ecm.inventory.ui.components.CupertinoNavBar
 import com.ecm.inventory.ui.components.InsetSection
+import com.ecm.inventory.ui.components.LargeTitle
 import com.ecm.inventory.ui.components.RowSeparator
 import com.ecm.inventory.ui.components.SettingsRow
 import com.ecm.inventory.ui.theme.AppleText
@@ -67,13 +68,15 @@ fun StatsScreen(
             .background(colors.groupedBackground)
     ) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-        CupertinoNavBar(title = appText("overview", language), showTitle = true, showSeparator = true)
+        CupertinoNavBar(title = appText("overview", language), showTitle = false, showSeparator = false)
 
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 8.dp, bottom = contentPadding.calculateBottomPadding() + 24.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
+            item { LargeTitle(appText("overview", language)) }
+
             item {
                 Row(
                     Modifier

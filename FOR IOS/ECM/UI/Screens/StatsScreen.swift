@@ -119,7 +119,7 @@ struct StatsScreen: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(AppCopy.text("overview", language))
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .ecmNavigationDestinations()
         }
     }

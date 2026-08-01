@@ -115,7 +115,7 @@ struct SettingsScreen: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(AppCopy.text("settings", language))
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 

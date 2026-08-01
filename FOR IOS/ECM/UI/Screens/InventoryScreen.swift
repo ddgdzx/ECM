@@ -28,7 +28,8 @@ struct InventoryScreen: View {
                         subtitle: AppCopy.text("quick_consume_hint", language),
                         action: AppCopy.text("start", language)
                     ) { showConsumption = true }
-                    .padding(.horizontal, 16)
+                    // 与下方 insetGrouped 元件列表的系统卡片边缘对齐。
+                    .padding(.horizontal, 20)
                     .padding(.vertical, 8)
                     .plainCardRow()
 
@@ -87,7 +88,7 @@ struct InventoryScreen: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(AppCopy.text("inventory", language))
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .searchable(text: $vm.query, prompt: AppCopy.text("search_inventory", language))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

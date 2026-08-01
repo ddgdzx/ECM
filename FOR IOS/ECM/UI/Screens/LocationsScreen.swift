@@ -50,7 +50,7 @@ struct LocationsScreen: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(AppCopy.text("storage_positions", language))
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

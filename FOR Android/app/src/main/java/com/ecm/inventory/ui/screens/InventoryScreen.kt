@@ -58,6 +58,7 @@ import com.ecm.inventory.ui.components.CupertinoSegmented
 import com.ecm.inventory.ui.components.EmptyState
 import com.ecm.inventory.ui.components.FilledActionButton
 import com.ecm.inventory.ui.components.InsetSection
+import com.ecm.inventory.ui.components.LargeTitle
 import com.ecm.inventory.ui.components.NavIconButton
 import com.ecm.inventory.ui.components.RowSeparator
 import com.ecm.inventory.ui.components.SettingsRow
@@ -95,8 +96,8 @@ fun InventoryScreen(
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         CupertinoNavBar(
             title = appText("inventory", language),
-            showTitle = true,
-            showSeparator = true,
+            showTitle = false,
+            showSeparator = false,
             trailing = {
                 NavIconButton(Icons.Rounded.Add, appText("add_component", language), onAdd)
             }
@@ -110,6 +111,8 @@ fun InventoryScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
+            item { LargeTitle(appText("inventory", language)) }
+
             item {
                 Text(
                     appFormat("items_summary", language, all.size, totalQty),
