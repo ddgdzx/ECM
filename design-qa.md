@@ -2,14 +2,11 @@
 
 **Source and evidence**
 
-- Source visual truth: `/Users/developer/.codex/generated_images/019fb865-a17d-7a73-9540-1c96fdce66b4/exec-f1c7d301-9115-48f9-a9d4-c3da3401956b.png`
+- Source visual truth: option 3 concept board (development reference; not stored in this repository).
 - Source pixels: 1686 × 933, three-screen concept board.
-- Implementation screenshots:
-  - `/Users/developer/.codex/visualizations/2026/07/31/019fb865-a17d-7a73-9540-1c96fdce66b4/arxan-home-v1.png`
-  - `/Users/developer/.codex/visualizations/2026/07/31/019fb865-a17d-7a73-9540-1c96fdce66b4/arxan-consume-v2.png`
-  - `/Users/developer/.codex/visualizations/2026/07/31/019fb865-a17d-7a73-9540-1c96fdce66b4/arxan-settings-v2.png`
+- Implementation screenshots: home, consumption, and settings screens captured during development (not stored in this repository).
 - Implementation pixels: 1170 × 2532 each, iPhone 16e at 390 × 844 points and @3x density. CSS size and deviceScaleFactor: not applicable to this native SwiftUI build.
-- Combined comparison: `/Users/developer/.codex/visualizations/2026/07/31/019fb865-a17d-7a73-9540-1c96fdce66b4/arxan-option3-comparison-v2.jpg`
+- Combined comparison: option 3 comparison board captured during development (not stored in this repository).
 - Density normalization: each native capture was proportionally downsampled to 562 × 1216 and placed directly below its corresponding source screen. Device chrome was retained but excluded from app-content judgments.
 - State: light theme; one resistor with 50 units; consumption quantity 5 with required detail entered; Simplified Chinese selected.
 
