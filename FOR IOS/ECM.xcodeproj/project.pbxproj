@@ -27,6 +27,7 @@
 		000000000000000000000127 /* ECMApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000126 /* ECMApp.swift */; };
 		000000000000000000000129 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000128 /* AppLanguage.swift */; };
 		00000000000000000000012B /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012A /* SettingsScreen.swift */; };
+		00000000000000000000012D /* NasSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012C /* NasSync.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +52,7 @@
 		000000000000000000000126 /* ECMApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECMApp.swift; sourceTree = "<group>"; };
 		000000000000000000000128 /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
 		00000000000000000000012A /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		00000000000000000000012C /* NasSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NasSync.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 				000000000000000000000101 /* Models.swift */,
 				000000000000000000000103 /* Persistence.swift */,
 				000000000000000000000105 /* EcmViewModel.swift */,
+				00000000000000000000012C /* NasSync.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -236,6 +239,7 @@
 				000000000000000000000127 /* ECMApp.swift in Sources */,
 				000000000000000000000129 /* AppLanguage.swift in Sources */,
 				00000000000000000000012B /* SettingsScreen.swift in Sources */,
+				00000000000000000000012D /* NasSync.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

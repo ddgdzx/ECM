@@ -176,6 +176,34 @@ final class EcmRepository {
         return records.map(\.entity).sorted { $0.consumedAt > $1.consumedAt }
     }
 
+    func snapshot(modifiedAt explicitModifiedAt: Double? = nil) -> EcmSnapshot {
+        let components = loadComponents()
+        let locations = loadLocations()
+        let consumptions = loadConsumptions()
+        let inferred = max(
+            components.map(\.updatedAt).max() ?? 0,
+            max(locations.map(\.createdAt).max() ?? 0, consumptions.map(\.consumedAt).max() ?? 0)
+        )
+        return EcmSnapshot(
+            modifiedAt: max(explicitModifiedAt ?? 0, inferred),
+            components: components,
+            locations: locations,
+            consumptions: consumptions
+        )
+    }
+
+    /// 用 NAS 快照原子替换本地数据。先清空再按外键依赖顺序写入，保留所有原始 ID。
+    func replaceAll(with snapshot: EcmSnapshot) {
+        for record in allConsumptionRecords() { context.delete(record) }
+        for record in allComponentRecords() { context.delete(record) }
+        let locationRecords = (try? context.fetch(FetchDescriptor<LocationRecord>())) ?? []
+        for record in locationRecords { context.delete(record) }
+        for item in snapshot.locations { context.insert(LocationRecord(entity: item)) }
+        for item in snapshot.components { context.insert(ComponentRecord(entity: item)) }
+        for item in snapshot.consumptions { context.insert(ConsumptionRecord(entity: item)) }
+        save()
+    }
+
     // MARK: 元件
 
     @discardableResult

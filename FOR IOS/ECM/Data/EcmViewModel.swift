@@ -101,6 +101,7 @@ final class EcmViewModel: ObservableObject {
     @Published private(set) var allComponents: [ComponentEntity] = []
     @Published private(set) var locations: [LocationEntity] = []
     @Published private(set) var consumptions: [ConsumptionEntity] = []
+    @Published private(set) var nasSyncState: NasSyncState = .notConfigured
 
     @Published var query: String = ""
     @Published var typeFilter: ComponentType?
@@ -112,12 +113,16 @@ final class EcmViewModel: ObservableObject {
 
     private var editingComponent: ComponentEntity?
     private var editingLocation: LocationEntity?
+    private let nasClient = NasSyncClient()
 
     // EcmRepository 是 @MainActor 的，默认值不能写在参数列表里（那里是非隔离上下文），
     // 只能在同样受 MainActor 保护的 init 体内构造。
     init(repository: EcmRepository? = nil) {
         self.repo = repository ?? EcmRepository()
         reload()
+        if NasCredentials.password != nil {
+            Task { await syncFromNas() }
+        }
     }
 
     private func reload() {
@@ -167,23 +172,27 @@ final class EcmViewModel: ObservableObject {
         guard componentDraft.isValid else { return nil }
         let id = repo.saveComponent(componentDraft.toEntity(existing: editingComponent))
         reload()
+        scheduleNasUpload()
         return id
     }
 
     func deleteComponent(_ item: ComponentEntity) {
         repo.deleteComponent(item)
         reload()
+        scheduleNasUpload()
     }
 
     func adjustQuantity(_ item: ComponentEntity, to newValue: Int) {
         repo.setQuantity(item.id, newValue)
         reload()
+        scheduleNasUpload()
     }
 
     @discardableResult
     func consume(_ item: ComponentEntity, quantity: Int, detail: String) -> Bool {
         let saved = repo.consume(item.id, quantity: quantity, detail: detail)
         reload()
+        if saved { scheduleNasUpload() }
         return saved
     }
 
@@ -215,13 +224,76 @@ final class EcmViewModel: ObservableObject {
         guard locationDraft.isValid else { return nil }
         let id = repo.saveLocation(locationDraft.toEntity(existing: editingLocation))
         reload()
+        scheduleNasUpload()
         return id
     }
 
     func deleteLocation(_ item: LocationEntity) {
         repo.deleteLocation(item)
         reload()
+        scheduleNasUpload()
     }
 
     func locationById(_ id: Int64) -> LocationEntity? { locations.first { $0.id == id } }
+
+    // MARK: - NAS 同步
+
+    var isNasConfigured: Bool { NasCredentials.password != nil }
+
+    func configureNas(password: String) async {
+        NasCredentials.password = password
+        await syncFromNas()
+    }
+
+    func disconnectNas() {
+        NasCredentials.password = nil
+        nasSyncState = .notConfigured
+    }
+
+    func syncFromNas() async {
+        guard let password = NasCredentials.password else {
+            nasSyncState = .notConfigured
+            return
+        }
+        nasSyncState = .syncing
+        do {
+            if let remote = try await nasClient.download(password: password) {
+                let local = repo.snapshot(modifiedAt: NasCredentials.localModifiedAt)
+                if remote.modifiedAt >= local.modifiedAt {
+                    repo.replaceAll(with: remote)
+                    NasCredentials.localModifiedAt = remote.modifiedAt
+                    reload()
+                } else {
+                    try await nasClient.upload(local, password: password)
+                }
+            } else {
+                let local = repo.snapshot(modifiedAt: NasCredentials.localModifiedAt)
+                try await nasClient.upload(local, password: password)
+            }
+            nasSyncState = .synced(Date())
+        } catch {
+            nasSyncState = .failed("无法连接 NAS，请检查密码和网络")
+        }
+    }
+
+    func syncToNas() async {
+        guard let password = NasCredentials.password else {
+            nasSyncState = .notConfigured
+            return
+        }
+        nasSyncState = .syncing
+        do {
+            let snapshot = repo.snapshot(modifiedAt: NasCredentials.localModifiedAt)
+            try await nasClient.upload(snapshot, password: password)
+            nasSyncState = .synced(Date())
+        } catch {
+            nasSyncState = .failed("上传失败，请稍后重试")
+        }
+    }
+
+    private func scheduleNasUpload() {
+        NasCredentials.localModifiedAt = Date().timeIntervalSince1970 * 1000
+        guard isNasConfigured else { return }
+        Task { await syncToNas() }
+    }
 }

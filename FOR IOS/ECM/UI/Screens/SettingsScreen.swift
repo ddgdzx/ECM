@@ -2,7 +2,9 @@ import SwiftUI
 
 struct SettingsScreen: View {
     @Environment(\.appLanguage) private var language
+    @EnvironmentObject private var vm: EcmViewModel
     @Binding var selectedLanguage: AppLanguage
+    @State private var nasPassword = ""
 
     var body: some View {
         NavigationStack {
@@ -57,6 +59,37 @@ struct SettingsScreen: View {
                     }
                 }
 
+                Section {
+                    LabeledContent(AppCopy.text("nas_server", language)) {
+                        Text("nas.example.com:5006")
+                            .foregroundStyle(AppleColors.secondaryLabel)
+                    }
+                    LabeledContent(AppCopy.text("nas_account", language)) {
+                        Text("nas-admin")
+                            .foregroundStyle(AppleColors.secondaryLabel)
+                    }
+
+                    if !vm.isNasConfigured {
+                        SecureField(AppCopy.text("nas_password", language), text: $nasPassword)
+                            .textContentType(.password)
+                        Button(AppCopy.text("nas_connect", language)) {
+                            let password = nasPassword
+                            nasPassword = ""
+                            Task { await vm.configureNas(password: password) }
+                        }
+                        .disabled(nasPassword.isBlank || vm.nasSyncState == .syncing)
+                    } else {
+                        LabeledContent(AppCopy.text("nas_status", language), value: nasStateText)
+                        Button(AppCopy.text("nas_download", language)) { Task { await vm.syncFromNas() } }
+                        Button(AppCopy.text("nas_upload", language)) { Task { await vm.syncToNas() } }
+                        Button(AppCopy.text("nas_disconnect", language), role: .destructive) { vm.disconnectNas() }
+                    }
+                } header: {
+                    Text(AppCopy.text("nas_sync", language))
+                } footer: {
+                    Text(AppCopy.text("nas_footer", language))
+                }
+
                 Section(AppCopy.text("about", language)) {
                     LabeledContent("Arxan ECM", value: "1.0")
                     Text(AppCopy.text("local_data", language))
@@ -67,6 +100,15 @@ struct SettingsScreen: View {
             .listStyle(.insetGrouped)
             .navigationTitle(AppCopy.text("settings", language))
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private var nasStateText: String {
+        switch vm.nasSyncState {
+        case .notConfigured: return AppCopy.text("nas_not_connected", language)
+        case .syncing: return AppCopy.text("nas_syncing", language)
+        case .synced: return AppCopy.text("nas_synced", language)
+        case .failed: return AppCopy.text("nas_failed", language)
         }
     }
 }

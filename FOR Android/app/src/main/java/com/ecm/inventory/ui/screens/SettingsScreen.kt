@@ -24,14 +24,22 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.ecm.inventory.ui.AppLanguage
+import com.ecm.inventory.ui.EcmViewModel
 import com.ecm.inventory.ui.LocalAppLanguage
 import com.ecm.inventory.ui.appText
 import com.ecm.inventory.ui.components.CupertinoNavBar
@@ -40,15 +48,20 @@ import com.ecm.inventory.ui.components.RowSeparator
 import com.ecm.inventory.ui.components.SettingsRow
 import com.ecm.inventory.ui.theme.AppleText
 import com.ecm.inventory.ui.theme.AppleTheme
+import com.ecm.inventory.data.NasSyncState
 
 @Composable
 fun SettingsScreen(
+    vm: EcmViewModel,
     selectedLanguage: AppLanguage,
     onLanguageChange: (AppLanguage) -> Unit,
     contentPadding: PaddingValues
 ) {
     val colors = AppleTheme.colors
     val language = LocalAppLanguage.current
+    val nasConfigured by vm.nasConfigured.collectAsState()
+    val nasState by vm.nasSyncState.collectAsState()
+    var nasPassword by remember { mutableStateOf("") }
 
     Column(Modifier.fillMaxSize().background(colors.groupedBackground)) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
@@ -76,6 +89,49 @@ fun SettingsScreen(
                             Text(appText("preferences", language), style = AppleText.title3, color = colors.label)
                             Text(appText("preferences_hint", language), style = AppleText.footnote, color = colors.secondaryLabel)
                         }
+                    }
+                }
+            }
+
+            item {
+                InsetSection(
+                    header = appText("nas_sync", language),
+                    footer = appText("nas_footer", language)
+                ) {
+                    SettingsRow(title = appText("nas_server", language), value = "nas.example.com:5006")
+                    RowSeparator(startInset = 16.dp)
+                    SettingsRow(title = appText("nas_account", language), value = "nas-admin")
+                    RowSeparator(startInset = 16.dp)
+                    if (!nasConfigured) {
+                        OutlinedTextField(
+                            value = nasPassword,
+                            onValueChange = { nasPassword = it },
+                            label = { Text(appText("nas_password", language)) },
+                            singleLine = true,
+                            visualTransformation = PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(
+                            title = appText("nas_connect", language),
+                            titleColor = colors.accent,
+                            onClick = if (nasPassword.isBlank() || nasState == NasSyncState.Syncing) null else {
+                                { vm.configureNas(nasPassword); nasPassword = "" }
+                            }
+                        )
+                    } else {
+                        SettingsRow(title = appText("nas_status", language), value = when (nasState) {
+                            NasSyncState.NotConfigured -> appText("nas_not_connected", language)
+                            NasSyncState.Syncing -> appText("nas_syncing", language)
+                            NasSyncState.Synced -> appText("nas_synced", language)
+                            is NasSyncState.Failed -> appText("nas_failed", language)
+                        })
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(title = appText("nas_download", language), titleColor = colors.accent, onClick = vm::syncFromNas)
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(title = appText("nas_upload", language), titleColor = colors.accent, onClick = vm::syncToNas)
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(title = appText("nas_disconnect", language), titleColor = colors.red, onClick = vm::disconnectNas)
                     }
                 }
             }

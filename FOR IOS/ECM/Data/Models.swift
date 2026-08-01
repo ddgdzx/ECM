@@ -154,7 +154,7 @@ struct Slot: Hashable {
  存储位置：一个容器由 层(layer) × 行(row) × 列(col) 的格口组成，
  每个格口即一个可存放元器件的槽位。
  */
-struct LocationEntity: Identifiable, Hashable {
+struct LocationEntity: Identifiable, Hashable, Codable {
     var id: Int64 = 0
     var name: String = ""
     var kind: String = LocationKind.box.rawValue
@@ -173,7 +173,7 @@ struct LocationEntity: Identifiable, Hashable {
 }
 
 /// 一条库存记录。
-struct ComponentEntity: Identifiable, Hashable {
+struct ComponentEntity: Identifiable, Hashable, Codable {
     var id: Int64 = 0
     var type: String = ComponentType.resistor.rawValue
     var model: String = ""
@@ -213,7 +213,7 @@ struct ComponentEntity: Identifiable, Hashable {
 }
 
 /// 一次元件消耗记录；保留用途、时间和扣减后的库存余量。
-struct ConsumptionEntity: Identifiable, Hashable {
+struct ConsumptionEntity: Identifiable, Hashable, Codable {
     var id: Int64 = 0
     var componentId: Int64
     var quantity: Int

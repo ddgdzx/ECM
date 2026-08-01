@@ -156,6 +156,7 @@ fun EcmNavHost(vm: EcmViewModel, navController: NavHostController = rememberNavC
 
             composable(Routes.SETTINGS) {
                 SettingsScreen(
+                    vm = vm,
                     selectedLanguage = language,
                     onLanguageChange = {
                         language = it

@@ -1,5 +1,6 @@
 package com.ecm.inventory.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -13,6 +14,9 @@ import com.ecm.inventory.data.ConsumptionEntity
 import com.ecm.inventory.data.EcmRepository
 import com.ecm.inventory.data.LocationEntity
 import com.ecm.inventory.data.LocationKind
+import com.ecm.inventory.data.NasCredentials
+import com.ecm.inventory.data.NasSyncClient
+import com.ecm.inventory.data.NasSyncState
 import com.ecm.inventory.data.Slot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +24,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class SortMode(val label: String) {
     RECENT("最近更新"),
@@ -107,7 +113,16 @@ data class LocationDraft(
     }
 }
 
-class EcmViewModel(private val repo: EcmRepository) : ViewModel() {
+class EcmViewModel(private val repo: EcmRepository, context: Context) : ViewModel() {
+
+    private val nasCredentials = NasCredentials(context)
+    private val nasClient = NasSyncClient()
+    val nasConfigured = MutableStateFlow(nasCredentials.password != null)
+    val nasSyncState = MutableStateFlow<NasSyncState>(if (nasConfigured.value) NasSyncState.Syncing else NasSyncState.NotConfigured)
+
+    init {
+        if (nasConfigured.value) syncFromNas()
+    }
 
     val locations: StateFlow<List<LocationEntity>> = repo.observeLocations()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -177,20 +192,26 @@ class EcmViewModel(private val repo: EcmRepository) : ViewModel() {
         if (!draft.isValid) return
         viewModelScope.launch {
             val id = repo.saveComponent(draft.toEntity(editingComponent))
+            markLocalChange()
+            uploadAfterChange()
             onSaved(id)
         }
     }
 
     fun deleteComponent(item: ComponentEntity) {
-        viewModelScope.launch { repo.deleteComponent(item) }
+        viewModelScope.launch { repo.deleteComponent(item); markLocalChange(); uploadAfterChange() }
     }
 
     fun adjustQuantity(item: ComponentEntity, delta: Int) {
-        viewModelScope.launch { repo.setQuantity(item.id, item.quantity + delta) }
+        viewModelScope.launch { repo.setQuantity(item.id, item.quantity + delta); markLocalChange(); uploadAfterChange() }
     }
 
     fun consume(item: ComponentEntity, quantity: Int, detail: String, onSaved: (Boolean) -> Unit = {}) {
-        viewModelScope.launch { onSaved(repo.consume(item.id, quantity, detail)) }
+        viewModelScope.launch {
+            val saved = repo.consume(item.id, quantity, detail)
+            if (saved) { markLocalChange(); uploadAfterChange() }
+            onSaved(saved)
+        }
     }
 
     fun consumptionsFor(componentId: Long): List<ConsumptionEntity> =
@@ -228,19 +249,77 @@ class EcmViewModel(private val repo: EcmRepository) : ViewModel() {
         if (!draft.isValid) return
         viewModelScope.launch {
             val id = repo.saveLocation(draft.toEntity(editingLocation))
+            markLocalChange()
+            uploadAfterChange()
             onSaved(id)
         }
     }
 
     fun deleteLocation(item: LocationEntity) {
-        viewModelScope.launch { repo.deleteLocation(item) }
+        viewModelScope.launch { repo.deleteLocation(item); markLocalChange(); uploadAfterChange() }
     }
 
     fun locationById(id: Long): LocationEntity? = locations.value.firstOrNull { it.id == id }
 
+    fun configureNas(password: String) {
+        nasCredentials.password = password
+        nasConfigured.value = true
+        syncFromNas()
+    }
+
+    fun disconnectNas() {
+        nasCredentials.password = null
+        nasConfigured.value = false
+        nasSyncState.value = NasSyncState.NotConfigured
+    }
+
+    fun syncFromNas() {
+        viewModelScope.launch {
+            val password = nasCredentials.password ?: return@launch
+            nasSyncState.value = NasSyncState.Syncing
+            runCatching {
+                withContext(Dispatchers.IO) { nasClient.download(password) }
+            }.onSuccess { remote ->
+                val local = repo.snapshot(nasCredentials.localModifiedAt)
+                if (remote == null) {
+                    uploadAfterChange()
+                } else if (remote.modifiedAt >= local.modifiedAt) {
+                    repo.replaceAll(remote)
+                    nasCredentials.localModifiedAt = remote.modifiedAt
+                } else {
+                    uploadAfterChange()
+                }
+                nasSyncState.value = NasSyncState.Synced
+            }.onFailure {
+                nasSyncState.value = NasSyncState.Failed("无法连接 NAS，请检查密码和网络")
+            }
+        }
+    }
+
+    fun syncToNas() {
+        viewModelScope.launch { uploadAfterChange(showProgress = true) }
+    }
+
+    private suspend fun uploadAfterChange(showProgress: Boolean = false) {
+        val password = nasCredentials.password ?: return
+        if (showProgress) nasSyncState.value = NasSyncState.Syncing
+        runCatching {
+            val snapshot = repo.snapshot(nasCredentials.localModifiedAt)
+            withContext(Dispatchers.IO) { nasClient.upload(snapshot, password) }
+        }.onSuccess {
+            nasSyncState.value = NasSyncState.Synced
+        }.onFailure {
+            nasSyncState.value = NasSyncState.Failed("上传失败，请稍后重试")
+        }
+    }
+
+    private fun markLocalChange() {
+        nasCredentials.localModifiedAt = System.currentTimeMillis()
+    }
+
     companion object {
         fun factory(app: EcmApp): ViewModelProvider.Factory = viewModelFactory {
-            initializer { EcmViewModel(app.repository) }
+            initializer { EcmViewModel(app.repository, app.applicationContext) }
         }
     }
 }

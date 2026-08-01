@@ -18,6 +18,32 @@ class EcmRepository(private val db: EcmDatabase) {
     fun observeLocation(id: Long): Flow<LocationEntity?> = locations.observeById(id)
     fun observeConsumptions(): Flow<List<ConsumptionEntity>> = consumptions.observeAll()
 
+    suspend fun snapshot(explicitModifiedAt: Long = 0): EcmSnapshot {
+        val componentList = components.findAll()
+        val locationList = locations.findAll()
+        val consumptionList = consumptions.findAll()
+        val inferred = maxOf(
+            componentList.maxOfOrNull { it.updatedAt } ?: 0,
+            locationList.maxOfOrNull { it.createdAt } ?: 0,
+            consumptionList.maxOfOrNull { it.consumedAt } ?: 0
+        )
+        return EcmSnapshot(
+            modifiedAt = maxOf(explicitModifiedAt, inferred),
+            components = componentList,
+            locations = locationList,
+            consumptions = consumptionList
+        )
+    }
+
+    suspend fun replaceAll(snapshot: EcmSnapshot) = db.withTransaction {
+        consumptions.clear()
+        components.clear()
+        locations.clear()
+        locations.insertAll(snapshot.locations)
+        components.insertAll(snapshot.components)
+        consumptions.insertAll(snapshot.consumptions)
+    }
+
     suspend fun saveComponent(item: ComponentEntity): Long {
         val stamped = item.copy(updatedAt = System.currentTimeMillis())
         return if (stamped.id == 0L) components.insert(stamped)

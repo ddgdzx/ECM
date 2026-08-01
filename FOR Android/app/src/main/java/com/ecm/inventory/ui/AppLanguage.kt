@@ -39,7 +39,21 @@ private val copy = mapOf(
     "appearance" to listOf("外观", "外觀", "Appearance", "Apariencia", "Darstellung"),
     "follow_system" to listOf("跟随系统", "跟隨系統", "Follow system", "Seguir sistema", "Systemeinstellung"),
     "about" to listOf("关于", "關於", "About", "Acerca de", "Über"),
-    "local_data" to listOf("库存数据仅保存在本机", "庫存資料僅儲存在本機", "Inventory data stays on this device", "Los datos se guardan en este dispositivo", "Bestandsdaten bleiben auf diesem Gerät")
+    "local_data" to listOf("数据保留本地副本，连接后同步到 NAS", "資料保留本機副本，連線後同步至 NAS", "Data stays available locally and syncs to NAS", "Los datos se guardan localmente y se sincronizan con el NAS", "Daten bleiben lokal verfügbar und werden mit dem NAS synchronisiert"),
+    "nas_sync" to listOf("NAS 数据同步", "NAS 資料同步", "NAS data sync", "Sincronización NAS", "NAS-Datensynchronisierung"),
+    "nas_server" to listOf("服务器", "伺服器", "Server", "Servidor", "Server"),
+    "nas_account" to listOf("账户", "帳戶", "Account", "Cuenta", "Konto"),
+    "nas_password" to listOf("输入 NAS 密码", "輸入 NAS 密碼", "Enter NAS password", "Introduce la contraseña del NAS", "NAS-Passwort eingeben"),
+    "nas_connect" to listOf("连接并同步", "連線並同步", "Connect and sync", "Conectar y sincronizar", "Verbinden und synchronisieren"),
+    "nas_status" to listOf("状态", "狀態", "Status", "Estado", "Status"),
+    "nas_not_connected" to listOf("未连接", "未連線", "Not connected", "Sin conexión", "Nicht verbunden"),
+    "nas_syncing" to listOf("正在同步…", "正在同步…", "Syncing…", "Sincronizando…", "Synchronisieren…"),
+    "nas_synced" to listOf("已同步", "已同步", "Synced", "Sincronizado", "Synchronisiert"),
+    "nas_failed" to listOf("同步失败，请检查密码和网络", "同步失敗，請檢查密碼與網路", "Sync failed. Check the password and network", "Error de sincronización. Comprueba la contraseña y la red", "Synchronisierung fehlgeschlagen. Passwort und Netzwerk prüfen"),
+    "nas_download" to listOf("从 NAS 获取最新数据", "從 NAS 取得最新資料", "Get latest data from NAS", "Obtener datos del NAS", "Neueste Daten vom NAS laden"),
+    "nas_upload" to listOf("立即备份到 NAS", "立即備份至 NAS", "Back up to NAS now", "Crear copia en el NAS", "Jetzt auf NAS sichern"),
+    "nas_disconnect" to listOf("断开 NAS", "中斷 NAS 連線", "Disconnect NAS", "Desconectar NAS", "NAS trennen"),
+    "nas_footer" to listOf("密码仅保存在本机安全存储中。连接后修改会自动备份，断网时仍可使用本地数据。", "密碼僅儲存在本機安全儲存空間。連線後修改會自動備份，離線時仍可使用本機資料。", "The password stays in secure device storage. Changes sync automatically; local data remains available offline.", "La contraseña se guarda de forma segura en el dispositivo. Los cambios se sincronizan automáticamente y los datos siguen disponibles sin conexión.", "Das Passwort bleibt im sicheren Gerätespeicher. Änderungen werden automatisch synchronisiert; lokale Daten bleiben offline verfügbar.")
 )
 
 fun appText(key: String, language: AppLanguage): String =

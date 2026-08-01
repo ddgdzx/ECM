@@ -35,8 +35,17 @@ interface ComponentDao {
     @Query("SELECT COUNT(*) FROM components")
     suspend fun count(): Int
 
+    @Query("SELECT * FROM components")
+    suspend fun findAll(): List<ComponentEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: ComponentEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<ComponentEntity>)
+
+    @Query("DELETE FROM components")
+    suspend fun clear()
 
     @Update
     suspend fun update(item: ComponentEntity)
@@ -64,8 +73,17 @@ interface ConsumptionDao {
     @Query("SELECT * FROM consumption_records ORDER BY consumedAt DESC")
     fun observeAll(): Flow<List<ConsumptionEntity>>
 
+    @Query("SELECT * FROM consumption_records")
+    suspend fun findAll(): List<ConsumptionEntity>
+
     @Insert
     suspend fun insert(item: ConsumptionEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<ConsumptionEntity>)
+
+    @Query("DELETE FROM consumption_records")
+    suspend fun clear()
 
     @Query("DELETE FROM consumption_records WHERE componentId = :componentId")
     suspend fun deleteByComponent(componentId: Long)
@@ -83,8 +101,17 @@ interface LocationDao {
     @Query("SELECT * FROM locations WHERE id = :id")
     suspend fun findById(id: Long): LocationEntity?
 
+    @Query("SELECT * FROM locations")
+    suspend fun findAll(): List<LocationEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: LocationEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<LocationEntity>)
+
+    @Query("DELETE FROM locations")
+    suspend fun clear()
 
     @Update
     suspend fun update(item: LocationEntity)
