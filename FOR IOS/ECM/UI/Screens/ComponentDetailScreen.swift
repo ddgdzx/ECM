@@ -26,7 +26,11 @@ struct ComponentDetailScreen: View {
             ComponentEditSheet()
         }
         .sheet(isPresented: $showConsume) {
-            if let component { ConsumptionEntrySheet(component: component) }
+            if let component {
+                ConsumptionEntrySheet(components: [component], initialComponent: component)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
 
@@ -242,42 +246,189 @@ struct ComponentDetailScreen: View {
 }
 
 struct ConsumptionEntrySheet: View {
-    let component: ComponentEntity
+    let components: [ComponentEntity]
+    let initialComponent: ComponentEntity?
 
     @EnvironmentObject private var vm: EcmViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var quantity = "1"
+    @Environment(\.appLanguage) private var language
+    @State private var selectedId: Int64?
+    @State private var query = ""
+    @State private var quantity = 1
     @State private var detail = ""
 
-    private var amount: Int { Int(quantity) ?? 0 }
-    private var valid: Bool { (1...component.quantity).contains(amount) && !detail.isBlank }
+    init(components: [ComponentEntity], initialComponent: ComponentEntity? = nil) {
+        self.components = components
+        self.initialComponent = initialComponent
+        _selectedId = State(initialValue: initialComponent?.id ?? components.first?.id)
+    }
+
+    private var filteredComponents: [ComponentEntity] {
+        guard !query.isBlank else { return components }
+        return components.filter {
+            [$0.displayTitle, $0.displaySubtitle].contains { $0.localizedCaseInsensitiveContains(query) }
+        }
+    }
+
+    private var component: ComponentEntity? {
+        components.first { $0.id == selectedId }
+    }
+
+    private var valid: Bool {
+        guard let component else { return false }
+        return (1...component.quantity).contains(quantity) && !detail.isBlank
+    }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("消耗数量") {
-                    TextField("数量", text: $quantity)
-                        .keyboardType(.numberPad)
-                    InfoRow(title: "登记后库存", value: "\(max(0, component.quantity - amount)) \(component.unit)")
-                }
-                Section("用途 / 明细") {
-                    TextField("如：样机 A 焊接、维修工单 012", text: $detail, axis: .vertical)
-                        .lineLimit(3...6)
-                }
-            }
-            .navigationTitle("登记消耗")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("确认") {
-                        if vm.consume(component, quantity: amount, detail: detail) { dismiss() }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    Text(AppCopy.text("choose_component", language))
+                        .font(AppleText.headline)
+
+                    HStack(spacing: 9) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(AppleColors.secondaryLabel)
+                        TextField(AppCopy.text("search_component", language), text: $query)
                     }
-                    .fontWeight(.semibold)
-                    .disabled(!valid)
+                    .padding(.horizontal, 13)
+                    .frame(height: 44)
+                    .background(AppleColors.fill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(filteredComponents) { item in
+                                Button {
+                                    withAnimation(.apple) {
+                                        selectedId = item.id
+                                        quantity = 1
+                                    }
+                                } label: {
+                                    VStack(spacing: 7) {
+                                        ComponentBadge(type: item.typeEnum)
+                                        Text(item.displayTitle)
+                                            .font(AppleText.caption.weight(.semibold))
+                                            .foregroundStyle(AppleColors.label)
+                                            .lineLimit(1)
+                                        Text("\(item.quantity) \(item.unit)")
+                                            .font(AppleText.caption2)
+                                            .foregroundStyle(AppleColors.secondaryLabel)
+                                    }
+                                    .frame(width: 132, height: 104)
+                                    .background(AppleColors.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .stroke(item.id == selectedId ? AppleColors.accent : AppleColors.separator.opacity(0.45), lineWidth: item.id == selectedId ? 2 : 1)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    if let component {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(AppCopy.text("consume_quantity", language))
+                                .font(AppleText.headline)
+
+                            HStack(spacing: 22) {
+                                Button { quantity = max(1, quantity - 1) } label: {
+                                    Image(systemName: "minus")
+                                        .frame(width: 44, height: 44)
+                                        .background(AppleColors.fill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                }
+                                .buttonStyle(.plain)
+
+                                Text("\(quantity)")
+                                    .font(.system(size: 42, weight: .bold, design: .rounded))
+                                    .frame(minWidth: 80)
+
+                                Button { quantity = min(component.quantity, quantity + 1) } label: {
+                                    Image(systemName: "plus")
+                                        .frame(width: 44, height: 44)
+                                        .background(AppleColors.fill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .frame(maxWidth: .infinity)
+
+                            HStack(spacing: 10) {
+                                ForEach([1, 5, 10], id: \.self) { value in
+                                    Button { quantity = min(component.quantity, value) } label: {
+                                        Text("\(value)")
+                                            .font(AppleText.subhead.weight(.semibold))
+                                            .foregroundStyle(quantity == value ? Color.white : AppleColors.label)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                quantity == value ? AppleColors.accent : AppleColors.fillStrong,
+                                                in: Capsule()
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+
+                            Label(
+                                "\(AppCopy.text("remaining", language)) \(max(0, component.quantity - quantity)) \(component.unit)",
+                                systemImage: "info.circle.fill"
+                            )
+                            .font(AppleText.subhead.weight(.medium))
+                            .foregroundStyle(AppleColors.accent)
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(AppleColors.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+
+                        VStack(alignment: .leading, spacing: 9) {
+                            Text(AppCopy.text("consume_detail", language))
+                                .font(AppleText.headline)
+                            TextField(AppCopy.text("consume_placeholder", language), text: $detail, axis: .vertical)
+                                .lineLimit(4...7)
+                                .padding(12)
+                                .background(AppleColors.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(AppleColors.separator.opacity(0.45), lineWidth: 1)
+                                }
+                        }
+                    }
                 }
+                .padding(16)
+                .padding(.bottom, 92)
+            }
+            .background(AppleColors.groupedBackground)
+            .navigationTitle(AppCopy.text("consume_title", language))
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                HStack(spacing: 12) {
+                    Button { dismiss() } label: {
+                        Text(AppCopy.text("cancel", language))
+                            .font(AppleText.headline)
+                            .foregroundStyle(AppleColors.accent)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(AppleColors.fill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    Button {
+                        guard let component else { return }
+                        if vm.consume(component, quantity: quantity, detail: detail) { dismiss() }
+                    } label: {
+                        Text("\(AppCopy.text("record", language)) \(quantity) \(component?.unit ?? "")")
+                            .font(AppleText.headline)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(AppleColors.orange, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!valid)
+                    .opacity(valid ? 1 : 0.35)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+                .background(.bar)
             }
         }
     }

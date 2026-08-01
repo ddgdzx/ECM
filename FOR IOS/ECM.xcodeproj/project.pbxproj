@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		000000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000010 /* Assets.xcassets */; };
 		000000000000000000000102 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000101 /* Models.swift */; };
 		000000000000000000000104 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000103 /* Persistence.swift */; };
 		000000000000000000000106 /* EcmViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000105 /* EcmViewModel.swift */; };
@@ -24,11 +25,13 @@
 		000000000000000000000122 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000121 /* Theme.swift */; };
 		000000000000000000000124 /* EcmRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000123 /* EcmRootView.swift */; };
 		000000000000000000000127 /* ECMApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000126 /* ECMApp.swift */; };
-		000000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000010 /* Assets.xcassets */; };
+		000000000000000000000129 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000128 /* AppLanguage.swift */; };
+		00000000000000000000012B /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012A /* SettingsScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		000000000000000000000003 /* ECM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ECM.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		000000000000000000000101 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		000000000000000000000103 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		000000000000000000000105 /* EcmViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcmViewModel.swift; sourceTree = "<group>"; };
@@ -46,7 +49,8 @@
 		000000000000000000000121 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		000000000000000000000123 /* EcmRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcmRootView.swift; sourceTree = "<group>"; };
 		000000000000000000000126 /* ECMApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECMApp.swift; sourceTree = "<group>"; };
-		000000000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		000000000000000000000128 /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
+		00000000000000000000012A /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +78,17 @@
 				000000000000000000000003 /* ECM.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000000006 /* ECM */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000107 /* Data */,
+				000000000000000000000125 /* UI */,
+				000000000000000000000126 /* ECMApp.swift */,
+				000000000000000000000010 /* Assets.xcassets */,
+			);
+			path = ECM;
 			sourceTree = "<group>";
 		};
 		000000000000000000000107 /* Data */ = {
@@ -114,6 +129,7 @@
 				00000000000000000000011A /* LocationDetailScreen.swift */,
 				00000000000000000000011C /* LocationEditScreen.swift */,
 				00000000000000000000011E /* StatsScreen.swift */,
+				00000000000000000000012A /* SettingsScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -126,19 +142,9 @@
 				000000000000000000000120 /* Screens */,
 				000000000000000000000121 /* Theme.swift */,
 				000000000000000000000123 /* EcmRootView.swift */,
+				000000000000000000000128 /* AppLanguage.swift */,
 			);
 			path = UI;
-			sourceTree = "<group>";
-		};
-		000000000000000000000006 /* ECM */ = {
-			isa = PBXGroup;
-			children = (
-				000000000000000000000107 /* Data */,
-				000000000000000000000125 /* UI */,
-				000000000000000000000126 /* ECMApp.swift */,
-				000000000000000000000010 /* Assets.xcassets */,
-			);
-			path = ECM;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -228,6 +234,8 @@
 				000000000000000000000122 /* Theme.swift in Sources */,
 				000000000000000000000124 /* EcmRootView.swift in Sources */,
 				000000000000000000000127 /* ECMApp.swift in Sources */,
+				000000000000000000000129 /* AppLanguage.swift in Sources */,
+				00000000000000000000012B /* SettingsScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,9 +306,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 6L3M73QDUM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "\U5143\U4ef6\U5e93";
+				INFOPLIST_KEY_CFBundleDisplayName = "Arxan ECM";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -313,7 +322,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ecm.inventory;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Arxan ECM";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -327,9 +336,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 6L3M73QDUM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "\U5143\U4ef6\U5e93";
+				INFOPLIST_KEY_CFBundleDisplayName = "Arxan ECM";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -342,7 +352,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ecm.inventory;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Arxan ECM";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

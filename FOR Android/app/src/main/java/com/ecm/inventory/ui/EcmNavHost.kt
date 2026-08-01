@@ -28,16 +28,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Inventory2
 import androidx.compose.material.icons.rounded.PieChart
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,6 +63,7 @@ import com.ecm.inventory.ui.screens.LocationEditScreen
 import com.ecm.inventory.ui.screens.LocationsScreen
 import com.ecm.inventory.ui.screens.SlotPickerScreen
 import com.ecm.inventory.ui.screens.StatsScreen
+import com.ecm.inventory.ui.screens.SettingsScreen
 import com.ecm.inventory.ui.theme.AppleText
 import com.ecm.inventory.ui.theme.AppleTheme
 
@@ -64,6 +71,7 @@ object Routes {
     const val INVENTORY = "inventory"
     const val LOCATIONS = "locations"
     const val STATS = "stats"
+    const val SETTINGS = "settings"
     const val COMPONENT_DETAIL = "component/{id}"
     const val COMPONENT_EDIT = "component_edit"
     const val LOCATION_DETAIL = "location/{id}"
@@ -76,25 +84,30 @@ object Routes {
 
 private data class Tab(
     val route: String,
-    val label: String,
+    val labelKey: String,
     val icon: ImageVector,
     val selectedIcon: ImageVector
 )
 
 private val tabs = listOf(
-    Tab(Routes.INVENTORY, "元件库", Icons.Outlined.Inventory2, Icons.Rounded.Inventory2),
-    Tab(Routes.LOCATIONS, "存储", Icons.Outlined.GridView, Icons.Rounded.GridView),
-    Tab(Routes.STATS, "概览", Icons.Outlined.PieChart, Icons.Rounded.PieChart)
+    Tab(Routes.INVENTORY, "inventory", Icons.Outlined.Inventory2, Icons.Rounded.Inventory2),
+    Tab(Routes.LOCATIONS, "storage", Icons.Outlined.GridView, Icons.Rounded.GridView),
+    Tab(Routes.STATS, "overview", Icons.Outlined.PieChart, Icons.Rounded.PieChart),
+    Tab(Routes.SETTINGS, "settings", Icons.Outlined.Settings, Icons.Rounded.Settings)
 )
 
 @Composable
 fun EcmNavHost(vm: EcmViewModel, navController: NavHostController = rememberNavController()) {
+    val context = LocalContext.current
+    val preferences = remember { context.getSharedPreferences("arxan_ecm_preferences", 0) }
+    var language by remember { mutableStateOf(AppLanguage.fromCode(preferences.getString("app_language", null))) }
     val colors = AppleTheme.colors
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
     val showTabBar = currentRoute in tabs.map { it.route }
     val tabBarHeight = 49.dp
 
+    CompositionLocalProvider(LocalAppLanguage provides language) {
     Box(
         Modifier
             .fillMaxSize()
@@ -137,6 +150,17 @@ fun EcmNavHost(vm: EcmViewModel, navController: NavHostController = rememberNavC
                 StatsScreen(
                     vm = vm,
                     onOpenComponent = { id -> navController.navigate(Routes.componentDetail(id)) },
+                    contentPadding = PaddingValues(bottom = tabBarHeight)
+                )
+            }
+
+            composable(Routes.SETTINGS) {
+                SettingsScreen(
+                    selectedLanguage = language,
+                    onLanguageChange = {
+                        language = it
+                        preferences.edit().putString("app_language", it.code).apply()
+                    },
                     contentPadding = PaddingValues(bottom = tabBarHeight)
                 )
             }
@@ -236,11 +260,13 @@ fun EcmNavHost(vm: EcmViewModel, navController: NavHostController = rememberNavC
             )
         }
     }
+    }
 }
 
 @Composable
 private fun TabBar(currentRoute: String?, onSelect: (String) -> Unit) {
     val colors = AppleTheme.colors
+    val language = LocalAppLanguage.current
     Column(
         Modifier
             .fillMaxWidth()
@@ -256,6 +282,7 @@ private fun TabBar(currentRoute: String?, onSelect: (String) -> Unit) {
         ) {
             tabs.forEach { tab ->
                 val selected = currentRoute == tab.route
+                val label = appText(tab.labelKey, language)
                 Column(
                     Modifier
                         .weight(1f)
@@ -269,13 +296,13 @@ private fun TabBar(currentRoute: String?, onSelect: (String) -> Unit) {
                 ) {
                     Icon(
                         imageVector = if (selected) tab.selectedIcon else tab.icon,
-                        contentDescription = tab.label,
+                        contentDescription = label,
                         tint = if (selected) colors.accent else colors.gray,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        tab.label,
+                        label,
                         style = AppleText.caption2.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal),
                         color = if (selected) colors.accent else colors.gray
                     )

@@ -4,8 +4,8 @@ struct InventoryScreen: View {
     @EnvironmentObject private var vm: EcmViewModel
     @State private var path: [Route] = []
     @State private var showEdit = false
-    @State private var showConsumePicker = false
-    @State private var consumptionComponent: ComponentEntity?
+    @State private var showConsumption = false
+    @Environment(\.appLanguage) private var language
 
     private var items: [ComponentWithLocation] { vm.visibleComponents }
     private var lowCount: Int { vm.allComponents.filter(\.isLow).count }
@@ -22,15 +22,14 @@ struct InventoryScreen: View {
                         .padding(.bottom, 4)
                         .plainCardRow()
 
-                    FilledActionButton(
-                        text: "−  登记元件消耗",
+                    QuickConsumptionCard(
                         enabled: vm.allComponents.contains { $0.quantity > 0 },
-                        color: AppleColors.orange
-                    ) {
-                        showConsumePicker = true
-                    }
+                        title: AppCopy.text("quick_consume", language),
+                        subtitle: AppCopy.text("quick_consume_hint", language),
+                        action: AppCopy.text("start", language)
+                    ) { showConsumption = true }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 6)
+                    .padding(.vertical, 8)
                     .plainCardRow()
 
                     ChipScroller {
@@ -87,7 +86,7 @@ struct InventoryScreen: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("元件库")
+            .navigationTitle("Arxan ECM")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $vm.query, prompt: "搜索型号、参数、封装")
             .toolbar {
@@ -105,22 +104,10 @@ struct InventoryScreen: View {
             .sheet(isPresented: $showEdit) {
                 ComponentEditSheet()
             }
-            .sheet(item: $consumptionComponent) { component in
-                ConsumptionEntrySheet(component: component)
-            }
-            .confirmationDialog(
-                "选择要消耗的元件",
-                isPresented: $showConsumePicker,
-                titleVisibility: .visible
-            ) {
-                ForEach(vm.allComponents.filter { $0.quantity > 0 }) { component in
-                    Button("\(component.displayTitle) · \(component.quantity) \(component.unit)") {
-                        consumptionComponent = component
-                    }
-                }
-                Button("取消", role: .cancel) {}
-            } message: {
-                Text("选择后填写消耗数量和用途明细。")
+            .sheet(isPresented: $showConsumption) {
+                ConsumptionEntrySheet(components: vm.allComponents.filter { $0.quantity > 0 })
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -132,5 +119,47 @@ struct InventoryScreen: View {
         ]
         .compactMap { $0 }
         .joined(separator: "  ·  ")
+    }
+}
+
+private struct QuickConsumptionCard: View {
+    let enabled: Bool
+    let title: String
+    let subtitle: String
+    let action: String
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 13) {
+                Image(systemName: "minus")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 48, height: 48)
+                    .background(AppleColors.orange, in: Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(AppleText.headline)
+                        .foregroundStyle(AppleColors.label)
+                    Text(subtitle)
+                        .font(AppleText.footnote)
+                        .foregroundStyle(AppleColors.secondaryLabel)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 8)
+                Text(action)
+                    .font(AppleText.subhead.weight(.semibold))
+                    .foregroundStyle(AppleColors.accent)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AppleColors.tertiaryLabel)
+            }
+            .padding(14)
+            .background(AppleColors.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.46)
+        .accessibilityLabel(title)
     }
 }

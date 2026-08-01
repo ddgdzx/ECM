@@ -1,6 +1,7 @@
 package com.ecm.inventory.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,8 +23,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,7 +44,9 @@ import androidx.compose.ui.unit.dp
 import com.ecm.inventory.data.ComponentType
 import com.ecm.inventory.data.ComponentWithLocation
 import com.ecm.inventory.ui.EcmViewModel
+import com.ecm.inventory.ui.LocalAppLanguage
 import com.ecm.inventory.ui.SortMode
+import com.ecm.inventory.ui.appText
 import com.ecm.inventory.ui.components.CapsuleChip
 import com.ecm.inventory.ui.components.ComponentBadge
 import com.ecm.inventory.ui.components.CupertinoNavBar
@@ -65,6 +72,7 @@ fun InventoryScreen(
     contentPadding: PaddingValues
 ) {
     val colors = AppleTheme.colors
+    val language = LocalAppLanguage.current
     val items by vm.visibleComponents.collectAsState()
     val query by vm.query.collectAsState()
     val typeFilter by vm.typeFilter.collectAsState()
@@ -74,8 +82,7 @@ fun InventoryScreen(
 
     val lowCount = all.count { it.isLow }
     val totalQty = all.sumOf { it.quantity }
-    var showConsumePicker by remember { mutableStateOf(false) }
-    var consumptionComponent by remember { mutableStateOf<com.ecm.inventory.data.ComponentEntity?>(null) }
+    var showConsumption by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -84,7 +91,7 @@ fun InventoryScreen(
     ) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         CupertinoNavBar(
-            title = "元件库",
+            title = "Arxan ECM",
             showTitle = true,
             showSeparator = true,
             trailing = {
@@ -111,11 +118,12 @@ fun InventoryScreen(
 
             item {
                 Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    FilledActionButton(
-                        text = "−  登记元件消耗",
+                    QuickConsumptionCard(
+                        title = appText("quick_consume", language),
+                        subtitle = appText("quick_consume_hint", language),
+                        action = appText("start", language),
                         enabled = all.any { it.quantity > 0 },
-                        color = colors.orange,
-                        onClick = { showConsumePicker = true }
+                        onClick = { showConsumption = true }
                     )
                 }
                 Spacer(Modifier.height(8.dp))
@@ -188,32 +196,46 @@ fun InventoryScreen(
         }
     }
 
-    if (showConsumePicker) {
-        AlertDialog(
-            onDismissRequest = { showConsumePicker = false },
-            title = { Text("选择要消耗的元件") },
-            text = {
-                LazyColumn(Modifier.heightIn(max = 380.dp)) {
-                    items(all.filter { it.quantity > 0 }, key = { it.id }) { component ->
-                        SettingsRow(
-                            title = component.displayTitle,
-                            subtitle = component.displaySubtitle,
-                            value = "${component.quantity} ${component.unit}",
-                            leading = { ComponentBadge(component.typeEnum) },
-                            onClick = {
-                                consumptionComponent = component
-                                showConsumePicker = false
-                            }
-                        )
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { showConsumePicker = false }) { Text("取消") } }
+    if (showConsumption) {
+        ConsumptionEntryDialog(
+            vm = vm,
+            components = all.filter { it.quantity > 0 },
+            onDismiss = { showConsumption = false }
         )
     }
+}
 
-    consumptionComponent?.let { component ->
-        ConsumptionDialog(vm = vm, component = component, onDismiss = { consumptionComponent = null })
+@Composable
+private fun QuickConsumptionCard(
+    title: String,
+    subtitle: String,
+    action: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = AppleTheme.colors
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(colors.cardBackground)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(13.dp)
+    ) {
+        Box(
+            Modifier.size(48.dp).clip(CircleShape).background(colors.orange),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Rounded.Remove, null, tint = Color.White, modifier = Modifier.size(24.dp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(title, style = AppleText.headline, color = colors.label)
+            Text(subtitle, style = AppleText.footnote, color = colors.secondaryLabel, maxLines = 1)
+        }
+        Text(action, style = AppleText.subhead.copy(fontWeight = FontWeight.SemiBold), color = colors.accent)
+        Icon(Icons.Rounded.ChevronRight, null, tint = colors.tertiaryLabel, modifier = Modifier.size(18.dp))
     }
 }
 
