@@ -5,7 +5,7 @@ Swift + SwiftUI + SwiftData，最低 iOS 17。
 
 支持一个元件选择多个格口，并可逐笔登记消耗数量、用途、时间和扣减后的库存余量。
 
-设置页支持将统一 JSON 快照同步到 fnOS WebDAV。密码只保存在 iOS Keychain；应用保留本地数据库，联网时自动备份，并按最后修改时间避免旧数据覆盖离线修改。
+设置页可自行填写 NAS 地址、WebDAV 端口、管理员用户名和密码，将统一 JSON 快照同步到 fnOS WebDAV。密码只保存在 iOS Keychain；应用保留本地数据库，联网时自动备份，并按最后修改时间避免旧数据覆盖离线修改。
 
 ```bash
 open ECM.xcodeproj     # Xcode 15+

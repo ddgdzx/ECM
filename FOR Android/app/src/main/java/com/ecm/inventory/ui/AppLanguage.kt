@@ -42,6 +42,7 @@ private val copy = mapOf(
     "local_data" to listOf("数据保留本地副本，连接后同步到 NAS", "資料保留本機副本，連線後同步至 NAS", "Data stays available locally and syncs to NAS", "Los datos se guardan localmente y se sincronizan con el NAS", "Daten bleiben lokal verfügbar und werden mit dem NAS synchronisiert"),
     "nas_sync" to listOf("NAS 数据同步", "NAS 資料同步", "NAS data sync", "Sincronización NAS", "NAS-Datensynchronisierung"),
     "nas_server" to listOf("服务器", "伺服器", "Server", "Servidor", "Server"),
+    "nas_port" to listOf("WebDAV 端口", "WebDAV 連接埠", "WebDAV port", "Puerto WebDAV", "WebDAV-Port"),
     "nas_account" to listOf("账户", "帳戶", "Account", "Cuenta", "Konto"),
     "nas_password" to listOf("输入 NAS 密码", "輸入 NAS 密碼", "Enter NAS password", "Introduce la contraseña del NAS", "NAS-Passwort eingeben"),
     "nas_connect" to listOf("连接并同步", "連線並同步", "Connect and sync", "Conectar y sincronizar", "Verbinden und synchronisieren"),

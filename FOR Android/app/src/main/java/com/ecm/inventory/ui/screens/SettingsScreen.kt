@@ -37,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.ecm.inventory.ui.AppLanguage
 import com.ecm.inventory.ui.EcmViewModel
@@ -61,6 +63,9 @@ fun SettingsScreen(
     val language = LocalAppLanguage.current
     val nasConfigured by vm.nasConfigured.collectAsState()
     val nasState by vm.nasSyncState.collectAsState()
+    var nasServer by remember { mutableStateOf(vm.nasServerAddress) }
+    var nasPort by remember { mutableStateOf(vm.nasPort.toString()) }
+    var nasUsername by remember { mutableStateOf(vm.nasUsername) }
     var nasPassword by remember { mutableStateOf("") }
 
     Column(Modifier.fillMaxSize().background(colors.groupedBackground)) {
@@ -98,11 +103,29 @@ fun SettingsScreen(
                     header = appText("nas_sync", language),
                     footer = appText("nas_footer", language)
                 ) {
-                    SettingsRow(title = appText("nas_server", language), value = "nas.example.com:5006")
-                    RowSeparator(startInset = 16.dp)
-                    SettingsRow(title = appText("nas_account", language), value = "nas-admin")
-                    RowSeparator(startInset = 16.dp)
                     if (!nasConfigured) {
+                        OutlinedTextField(
+                            value = nasServer,
+                            onValueChange = { nasServer = it },
+                            label = { Text(appText("nas_server", language)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
+                        OutlinedTextField(
+                            value = nasPort,
+                            onValueChange = { nasPort = it.filter(Char::isDigit).take(5) },
+                            label = { Text(appText("nas_port", language)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
+                        OutlinedTextField(
+                            value = nasUsername,
+                            onValueChange = { nasUsername = it },
+                            label = { Text(appText("nas_account", language)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
                         OutlinedTextField(
                             value = nasPassword,
                             onValueChange = { nasPassword = it },
@@ -115,11 +138,23 @@ fun SettingsScreen(
                         SettingsRow(
                             title = appText("nas_connect", language),
                             titleColor = colors.accent,
-                            onClick = if (nasPassword.isBlank() || nasState == NasSyncState.Syncing) null else {
-                                { vm.configureNas(nasPassword); nasPassword = "" }
+                            onClick = if (
+                                nasServer.isBlank() || nasUsername.isBlank() || nasPassword.isBlank() ||
+                                (nasPort.toIntOrNull() ?: 0) !in 1..65535 || nasState == NasSyncState.Syncing
+                            ) null else {
+                                {
+                                    vm.configureNas(nasServer, nasPort.toInt(), nasUsername, nasPassword)
+                                    nasPassword = ""
+                                }
                             }
                         )
                     } else {
+                        SettingsRow(title = appText("nas_server", language), value = vm.nasServerAddress)
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(title = appText("nas_port", language), value = vm.nasPort.toString())
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(title = appText("nas_account", language), value = vm.nasUsername)
+                        RowSeparator(startInset = 16.dp)
                         SettingsRow(title = appText("nas_status", language), value = when (nasState) {
                             NasSyncState.NotConfigured -> appText("nas_not_connected", language)
                             NasSyncState.Syncing -> appText("nas_syncing", language)

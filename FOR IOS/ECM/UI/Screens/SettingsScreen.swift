@@ -4,6 +4,9 @@ struct SettingsScreen: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var vm: EcmViewModel
     @Binding var selectedLanguage: AppLanguage
+    @State private var nasServer = NasCredentials.serverAddress
+    @State private var nasPort = String(NasCredentials.port)
+    @State private var nasUsername = NasCredentials.username
     @State private var nasPassword = ""
 
     var body: some View {
@@ -60,25 +63,33 @@ struct SettingsScreen: View {
                 }
 
                 Section {
-                    LabeledContent(AppCopy.text("nas_server", language)) {
-                        Text("nas.example.com:5006")
-                            .foregroundStyle(AppleColors.secondaryLabel)
-                    }
-                    LabeledContent(AppCopy.text("nas_account", language)) {
-                        Text("nas-admin")
-                            .foregroundStyle(AppleColors.secondaryLabel)
-                    }
-
                     if !vm.isNasConfigured {
+                        TextField(AppCopy.text("nas_server", language), text: $nasServer)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                        TextField(AppCopy.text("nas_port", language), text: $nasPort)
+                            .keyboardType(.numberPad)
+                        TextField(AppCopy.text("nas_account", language), text: $nasUsername)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
                         SecureField(AppCopy.text("nas_password", language), text: $nasPassword)
                             .textContentType(.password)
                         Button(AppCopy.text("nas_connect", language)) {
+                            let server = nasServer
+                            let port = Int(nasPort) ?? 0
+                            let username = nasUsername
                             let password = nasPassword
                             nasPassword = ""
-                            Task { await vm.configureNas(password: password) }
+                            Task { await vm.configureNas(serverAddress: server, port: port, username: username, password: password) }
                         }
-                        .disabled(nasPassword.isBlank || vm.nasSyncState == .syncing)
+                        .disabled(
+                            nasServer.isBlank || nasUsername.isBlank || nasPassword.isBlank ||
+                            !(1...65535).contains(Int(nasPort) ?? 0) || vm.nasSyncState == .syncing
+                        )
                     } else {
+                        LabeledContent(AppCopy.text("nas_server", language), value: NasCredentials.serverAddress)
+                        LabeledContent(AppCopy.text("nas_port", language), value: String(NasCredentials.port))
+                        LabeledContent(AppCopy.text("nas_account", language), value: NasCredentials.username)
                         LabeledContent(AppCopy.text("nas_status", language), value: nasStateText)
                         Button(AppCopy.text("nas_download", language)) { Task { await vm.syncFromNas() } }
                         Button(AppCopy.text("nas_upload", language)) { Task { await vm.syncToNas() } }

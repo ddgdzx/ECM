@@ -7,6 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URI
 import java.util.Base64
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
@@ -46,15 +47,45 @@ class NasCredentials(context: Context) {
             }.apply()
         }
 
+    var serverAddress: String
+        get() = preferences.getString("server_address", "").orEmpty()
+        set(value) { preferences.edit().putString("server_address", value.trim()).apply() }
+
+    var port: Int
+        get() = preferences.getInt("port", 5006)
+        set(value) { preferences.edit().putInt("port", value).apply() }
+
+    var username: String
+        get() = preferences.getString("username", "").orEmpty()
+        set(value) { preferences.edit().putString("username", value.trim()).apply() }
+
     var localModifiedAt: Long
         get() = preferences.getLong("local_modified_at", 0)
         set(value) { preferences.edit().putLong("local_modified_at", value).apply() }
 
-    companion object {
-        const val USERNAME = "nas-admin"
-        const val FILE_URL = "https://nas.example.com:5006/file/ArxanECM/ecm-data.json"
-    }
+    val configuration: NasConfiguration?
+        get() {
+            val password = password ?: return null
+            if (username.isBlank() || port !in 1..65535) return null
+            val candidate = serverAddress.trim().let { if (it.contains("://")) it else "https://$it" }
+            val host = runCatching { URI(candidate).host }.getOrNull()?.takeIf { it.isNotBlank() } ?: return null
+            return NasConfiguration(
+                host = host,
+                username = username,
+                password = password,
+                fileUrl = URI("https", null, host, port, "/file/ArxanECM/ecm-data.json", null, null).toURL(),
+                directoryUrl = URI("https", null, host, port, "/file/ArxanECM/", null, null).toURL()
+            )
+        }
 }
+
+data class NasConfiguration(
+    val host: String,
+    val username: String,
+    val password: String,
+    val fileUrl: URL,
+    val directoryUrl: URL
+)
 
 class NasSyncClient {
     private val trustManager = object : X509TrustManager {
@@ -66,28 +97,36 @@ class NasSyncClient {
         init(null, arrayOf<TrustManager>(trustManager), java.security.SecureRandom())
     }.socketFactory
 
-    private fun connection(method: String, password: String): HttpsURLConnection {
-        return (URL(NasCredentials.FILE_URL).openConnection() as HttpsURLConnection).apply {
+    private fun connection(method: String, url: URL, configuration: NasConfiguration): HttpsURLConnection {
+        return (url.openConnection() as HttpsURLConnection).apply {
             requestMethod = method
             connectTimeout = 15_000
             readTimeout = 20_000
             sslSocketFactory = this@NasSyncClient.sslSocketFactory
-            hostnameVerifier = HostnameVerifier { host, _ -> host == "nas.example.com" }
+            hostnameVerifier = HostnameVerifier { host, _ -> host == configuration.host }
             setRequestProperty("Content-Type", "application/json")
-            val token = Base64.getEncoder().encodeToString("${NasCredentials.USERNAME}:$password".toByteArray())
+            val token = Base64.getEncoder().encodeToString("${configuration.username}:${configuration.password}".toByteArray())
             setRequestProperty("Authorization", "Basic $token")
         }
     }
 
-    fun upload(snapshot: EcmSnapshot, password: String) {
-        val connection = connection("PUT", password).apply { doOutput = true }
+    private fun ensureDirectory(configuration: NasConfiguration) {
+        val connection = connection("MKCOL", configuration.directoryUrl, configuration)
+        val code = connection.responseCode
+        connection.disconnect()
+        if (code != 201 && code != 405) error("HTTP $code")
+    }
+
+    fun upload(snapshot: EcmSnapshot, configuration: NasConfiguration) {
+        ensureDirectory(configuration)
+        val connection = connection("PUT", configuration.fileUrl, configuration).apply { doOutput = true }
         connection.outputStream.use { it.write(snapshot.toJson().toString().toByteArray()) }
         if (connection.responseCode !in 200..299) error("HTTP ${connection.responseCode}")
         connection.disconnect()
     }
 
-    fun download(password: String): EcmSnapshot? {
-        val connection = connection("GET", password)
+    fun download(configuration: NasConfiguration): EcmSnapshot? {
+        val connection = connection("GET", configuration.fileUrl, configuration)
         return when (val code = connection.responseCode) {
             404 -> null
             in 200..299 -> connection.inputStream.bufferedReader().use { snapshotFromJson(JSONObject(it.readText())) }

@@ -59,6 +59,7 @@ enum AppCopy {
             "local_data": [.simplifiedChinese: "数据保留本地副本，连接后同步到 NAS", .traditionalChinese: "資料保留本機副本，連線後同步至 NAS", .english: "Data stays available locally and syncs to NAS", .spanish: "Los datos se guardan localmente y se sincronizan con el NAS", .german: "Daten bleiben lokal verfügbar und werden mit dem NAS synchronisiert"],
             "nas_sync": [.simplifiedChinese: "NAS 数据同步", .traditionalChinese: "NAS 資料同步", .english: "NAS data sync", .spanish: "Sincronización NAS", .german: "NAS-Datensynchronisierung"],
             "nas_server": [.simplifiedChinese: "服务器", .traditionalChinese: "伺服器", .english: "Server", .spanish: "Servidor", .german: "Server"],
+            "nas_port": [.simplifiedChinese: "WebDAV 端口", .traditionalChinese: "WebDAV 連接埠", .english: "WebDAV port", .spanish: "Puerto WebDAV", .german: "WebDAV-Port"],
             "nas_account": [.simplifiedChinese: "账户", .traditionalChinese: "帳戶", .english: "Account", .spanish: "Cuenta", .german: "Konto"],
             "nas_password": [.simplifiedChinese: "输入 NAS 密码", .traditionalChinese: "輸入 NAS 密碼", .english: "Enter NAS password", .spanish: "Introduce la contraseña del NAS", .german: "NAS-Passwort eingeben"],
             "nas_connect": [.simplifiedChinese: "连接并同步", .traditionalChinese: "連線並同步", .english: "Connect and sync", .spanish: "Conectar y sincronizar", .german: "Verbinden und synchronisieren"],

@@ -117,8 +117,11 @@ class EcmViewModel(private val repo: EcmRepository, context: Context) : ViewMode
 
     private val nasCredentials = NasCredentials(context)
     private val nasClient = NasSyncClient()
-    val nasConfigured = MutableStateFlow(nasCredentials.password != null)
+    val nasConfigured = MutableStateFlow(nasCredentials.configuration != null)
     val nasSyncState = MutableStateFlow<NasSyncState>(if (nasConfigured.value) NasSyncState.Syncing else NasSyncState.NotConfigured)
+    val nasServerAddress: String get() = nasCredentials.serverAddress
+    val nasPort: Int get() = nasCredentials.port
+    val nasUsername: String get() = nasCredentials.username
 
     init {
         if (nasConfigured.value) syncFromNas()
@@ -261,9 +264,12 @@ class EcmViewModel(private val repo: EcmRepository, context: Context) : ViewMode
 
     fun locationById(id: Long): LocationEntity? = locations.value.firstOrNull { it.id == id }
 
-    fun configureNas(password: String) {
+    fun configureNas(serverAddress: String, port: Int, username: String, password: String) {
+        nasCredentials.serverAddress = serverAddress
+        nasCredentials.port = port
+        nasCredentials.username = username
         nasCredentials.password = password
-        nasConfigured.value = true
+        nasConfigured.value = nasCredentials.configuration != null
         syncFromNas()
     }
 
@@ -275,10 +281,10 @@ class EcmViewModel(private val repo: EcmRepository, context: Context) : ViewMode
 
     fun syncFromNas() {
         viewModelScope.launch {
-            val password = nasCredentials.password ?: return@launch
+            val configuration = nasCredentials.configuration ?: return@launch
             nasSyncState.value = NasSyncState.Syncing
             runCatching {
-                withContext(Dispatchers.IO) { nasClient.download(password) }
+                withContext(Dispatchers.IO) { nasClient.download(configuration) }
             }.onSuccess { remote ->
                 val local = repo.snapshot(nasCredentials.localModifiedAt)
                 if (remote == null) {
@@ -301,11 +307,11 @@ class EcmViewModel(private val repo: EcmRepository, context: Context) : ViewMode
     }
 
     private suspend fun uploadAfterChange(showProgress: Boolean = false) {
-        val password = nasCredentials.password ?: return
+        val configuration = nasCredentials.configuration ?: return
         if (showProgress) nasSyncState.value = NasSyncState.Syncing
         runCatching {
             val snapshot = repo.snapshot(nasCredentials.localModifiedAt)
-            withContext(Dispatchers.IO) { nasClient.upload(snapshot, password) }
+            withContext(Dispatchers.IO) { nasClient.upload(snapshot, configuration) }
         }.onSuccess {
             nasSyncState.value = NasSyncState.Synced
         }.onFailure {

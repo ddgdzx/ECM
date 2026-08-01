@@ -120,7 +120,7 @@ final class EcmViewModel: ObservableObject {
     init(repository: EcmRepository? = nil) {
         self.repo = repository ?? EcmRepository()
         reload()
-        if NasCredentials.password != nil {
+        if NasCredentials.configuration != nil {
             Task { await syncFromNas() }
         }
     }
@@ -238,9 +238,12 @@ final class EcmViewModel: ObservableObject {
 
     // MARK: - NAS 同步
 
-    var isNasConfigured: Bool { NasCredentials.password != nil }
+    var isNasConfigured: Bool { NasCredentials.configuration != nil }
 
-    func configureNas(password: String) async {
+    func configureNas(serverAddress: String, port: Int, username: String, password: String) async {
+        NasCredentials.serverAddress = serverAddress
+        NasCredentials.port = port
+        NasCredentials.username = username
         NasCredentials.password = password
         await syncFromNas()
     }
@@ -251,24 +254,24 @@ final class EcmViewModel: ObservableObject {
     }
 
     func syncFromNas() async {
-        guard let password = NasCredentials.password else {
+        guard let configuration = NasCredentials.configuration else {
             nasSyncState = .notConfigured
             return
         }
         nasSyncState = .syncing
         do {
-            if let remote = try await nasClient.download(password: password) {
+            if let remote = try await nasClient.download(configuration: configuration) {
                 let local = repo.snapshot(modifiedAt: NasCredentials.localModifiedAt)
                 if remote.modifiedAt >= local.modifiedAt {
                     repo.replaceAll(with: remote)
                     NasCredentials.localModifiedAt = remote.modifiedAt
                     reload()
                 } else {
-                    try await nasClient.upload(local, password: password)
+                    try await nasClient.upload(local, configuration: configuration)
                 }
             } else {
                 let local = repo.snapshot(modifiedAt: NasCredentials.localModifiedAt)
-                try await nasClient.upload(local, password: password)
+                try await nasClient.upload(local, configuration: configuration)
             }
             nasSyncState = .synced(Date())
         } catch {
@@ -277,14 +280,14 @@ final class EcmViewModel: ObservableObject {
     }
 
     func syncToNas() async {
-        guard let password = NasCredentials.password else {
+        guard let configuration = NasCredentials.configuration else {
             nasSyncState = .notConfigured
             return
         }
         nasSyncState = .syncing
         do {
             let snapshot = repo.snapshot(modifiedAt: NasCredentials.localModifiedAt)
-            try await nasClient.upload(snapshot, password: password)
+            try await nasClient.upload(snapshot, configuration: configuration)
             nasSyncState = .synced(Date())
         } catch {
             nasSyncState = .failed("上传失败，请稍后重试")
