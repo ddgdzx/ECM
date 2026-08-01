@@ -75,8 +75,8 @@ jobs:
         run: |
           mkdir -p dist
           V="${{ steps.version.outputs.name }}"
-          cp app/build/outputs/apk/debug/app-debug.apk "dist/ecm-${V}-debug.apk"
-          cp app/build/outputs/apk/release/app-release.apk "dist/ecm-${V}-release.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/arxan-ecm-${V}-debug.apk"
+          cp app/build/outputs/apk/release/app-release.apk "dist/arxan-ecm-${V}-release.apk"
           {
             echo "## 安卓构建产物"
             echo ""
@@ -96,7 +96,7 @@ jobs:
       - name: 上传到 Actions 产物
         uses: actions/upload-artifact@v4
         with:
-          name: ecm-apk-${{ steps.version.outputs.name }}
+          name: arxan-ecm-apk-${{ steps.version.outputs.name }}
           path: "FOR Android/dist/*.apk"
           retention-days: 30
           if-no-files-found: error
@@ -109,6 +109,6 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           # iOS 工作流可能已经先建好了同一个 Release，这时改成往上追加文件。
           gh release create "$TAG" dist/*.apk \
-            --title "元件库 $TAG" \
+            --title "Arxan ECM $TAG" \
             --generate-notes \
           || gh release upload "$TAG" dist/*.apk --clobber

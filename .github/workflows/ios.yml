@@ -69,12 +69,12 @@ jobs:
             MARKETING_VERSION="${{ steps.version.outputs.name }}" \
             CURRENT_PROJECT_VERSION="${{ steps.version.outputs.code }}" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
-          APP="build/dd-device/Build/Products/Release-iphoneos/ECM.app"
+          APP="build/dd-device/Build/Products/Release-iphoneos/Arxan ECM.app"
           test -d "$APP"
           V="${{ steps.version.outputs.name }}"
           mkdir -p dist Payload
           cp -R "$APP" Payload/
-          zip -qry "dist/ecm-${V}-unsigned.ipa" Payload
+          zip -qry "dist/arxan-ecm-${V}-unsigned.ipa" Payload
           rm -rf Payload
 
       - name: 整理产物
@@ -98,7 +98,7 @@ jobs:
       - name: 上传到 Actions 产物
         uses: actions/upload-artifact@v4
         with:
-          name: ecm-ios-${{ steps.version.outputs.name }}
+          name: arxan-ecm-ios-${{ steps.version.outputs.name }}
           path: "FOR IOS/dist/*.ipa"
           retention-days: 30
           if-no-files-found: error
@@ -111,6 +111,6 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           # 安卓工作流可能已经先建好了同一个 Release，这时改成往上追加文件。
           gh release create "$TAG" dist/*.ipa \
-            --title "元件库 $TAG" \
+            --title "Arxan ECM $TAG" \
             --generate-notes \
           || gh release upload "$TAG" dist/*.ipa --clobber
