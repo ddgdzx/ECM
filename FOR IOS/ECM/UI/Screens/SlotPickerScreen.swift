@@ -7,10 +7,12 @@ import SwiftUI
 struct SlotPickerScreen: View {
     @EnvironmentObject private var vm: EcmViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.appLanguage) private var language
 
     @State private var locationId: Int64?
     @State private var slots: Set<Slot> = []
     @State private var exploded = false
+    @State private var focusLayer: Int?
     @State private var creatingLocation = false
     @StateObject private var camera = IsoCameraState()
 
@@ -72,6 +74,7 @@ struct SlotPickerScreen: View {
                             locationId = loc.id
                             slots = []
                             exploded = loc.layers > 1
+                            focusLayer = nil
                         }
                     }
                     CapsuleChip(text: "＋ 新建") { startCreatingLocation() }
@@ -87,6 +90,7 @@ struct SlotPickerScreen: View {
                         cols: location.cols,
                         bins: bins,
                         highlight: slots.first,
+                        focusLayer: focusLayer,
                         exploded: exploded,
                         onSlotClick: { selected in
                             if slots.contains(selected) { slots.remove(selected) }
@@ -105,10 +109,31 @@ struct SlotPickerScreen: View {
                         }
                     }
                     .edgeToEdgeRow()
+
+                    if location.layers > 1 {
+                        ChipScroller(verticalPadding: 4) {
+                            CapsuleChip(
+                                text: AppCopy.text("all_layers", language),
+                                selected: focusLayer == nil
+                            ) { focusLayer = nil }
+                            ForEach(0..<location.layers, id: \.self) { layer in
+                                CapsuleChip(
+                                    text: AppCopy.format("layer_number", language, layer + 1),
+                                    selected: focusLayer == layer
+                                ) {
+                                    focusLayer = layer
+                                    exploded = true
+                                }
+                            }
+                        }
+                        .edgeToEdgeRow()
+                    }
                 } header: {
                     Text("多选格口")
                 } footer: {
-                    Text("点击可选择或取消格口；带 ✓ 的格口会一起分配给该元件。")
+                    Text(location.layers > 1
+                         ? AppCopy.text("slot_layer_hint", language)
+                         : "点击可选择或取消格口；带 ✓ 的格口会一起分配给该元件。")
                 }
 
                 Section("已选择") {

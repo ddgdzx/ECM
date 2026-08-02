@@ -6,8 +6,8 @@ plugins {
 }
 
 // CI 可通过环境变量覆盖版本号与签名信息；本地开发不设时走默认值 + debug 签名。
-val ciVersionCode = System.getenv("ECM_VERSION_CODE")?.toIntOrNull() ?: 2
-val ciVersionName = System.getenv("ECM_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.1.0"
+val ciVersionCode = System.getenv("ECM_VERSION_CODE")?.toIntOrNull() ?: 3
+val ciVersionName = System.getenv("ECM_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.1.1"
 val releaseKeystore = System.getenv("ECM_KEYSTORE_FILE")?.takeIf { it.isNotBlank() }
 
 android {

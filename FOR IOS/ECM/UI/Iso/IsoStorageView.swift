@@ -182,6 +182,7 @@ struct IsoScene {
     var cellPx: Double = 0
     var highlight: Slot?
     var pulse: Double = 0
+    var focusLayer: Int?
 
     // MARK: 构建
 
@@ -333,6 +334,7 @@ struct IsoScene {
         scene.cellPx = scale * (1 - BIN_GAP)
         scene.highlight = highlight
         scene.pulse = pulse
+        scene.focusLayer = focusLayer
         return scene
     }
 
@@ -398,6 +400,8 @@ struct IsoScene {
     func hitTest(_ point: CGPoint) -> Slot? {
         for item in items.reversed() {
             guard let slot = item.slot else { continue }
+            // 单层查看时，半透明的其他层只作空间参照，不应截获点击。
+            guard focusLayer == nil || slot.layer == focusLayer else { continue }
             if item.faces.contains(where: { pointInPolygon(point, $0.pts) }) { return slot }
         }
         return nil

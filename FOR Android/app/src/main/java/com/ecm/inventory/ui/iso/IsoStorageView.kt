@@ -348,7 +348,10 @@ private fun DrawScope.drawCabinet(
             )
         }
         if (item.slot != null) {
-            hitList += item.slot to item.faces.map { it.pts }
+            // 单层查看时只让目标层参与命中测试，避免半透明的上层仍截获点击。
+            if (focusLayer == null || item.slot.layer == focusLayer) {
+                hitList += item.slot to item.faces.map { it.pts }
+            }
             val count = item.style?.count ?: 0
             if (showLabels && count > 0) {
                 val text = item.style?.label ?: count.toString()

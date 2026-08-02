@@ -29,6 +29,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ecm.inventory.data.Slot
 import com.ecm.inventory.ui.EcmViewModel
+import com.ecm.inventory.ui.LocalAppLanguage
+import com.ecm.inventory.ui.appFormat
+import com.ecm.inventory.ui.appText
 import com.ecm.inventory.ui.components.CapsuleChip
 import com.ecm.inventory.ui.components.CupertinoNavBar
 import com.ecm.inventory.ui.components.EmptyState
@@ -54,6 +57,7 @@ fun SlotPickerScreen(
     onCreateLocation: () -> Unit
 ) {
     val colors = AppleTheme.colors
+    val language = LocalAppLanguage.current
     val locations by vm.locations.collectAsState()
     val components by vm.allComponentsState.collectAsState()
     val draft by vm.componentDraft.collectAsState()
@@ -65,6 +69,7 @@ fun SlotPickerScreen(
     var exploded by remember(locationId) {
         mutableStateOf((locations.firstOrNull { it.id == locationId }?.layers ?: 1) > 1)
     }
+    var focusLayer by remember(locationId) { mutableStateOf<Int?>(null) }
     val camera = rememberIsoCamera()
 
     val location = locations.firstOrNull { it.id == locationId }
@@ -129,6 +134,7 @@ fun SlotPickerScreen(
                                 onClick = {
                                     locationId = loc.id
                                     slots = emptySet()
+                                    focusLayer = null
                                 }
                             )
                         }
@@ -141,7 +147,8 @@ fun SlotPickerScreen(
                 item {
                     InsetSection(
                         header = "多选格口",
-                        footer = "点击可选择或取消格口；带 ✓ 的格口会一起分配给该元件。"
+                        footer = if (location.layers > 1) appText("slot_layer_hint", language)
+                        else "点击可选择或取消格口；带 ✓ 的格口会一起分配给该元件。"
                     ) {
                         Box(
                             Modifier
@@ -161,6 +168,7 @@ fun SlotPickerScreen(
                                     }
                                 },
                                 highlight = slots.lastOrNull(),
+                                focusLayer = focusLayer,
                                 exploded = exploded,
                                 camera = camera,
                                 onSlotClick = { s ->
@@ -181,6 +189,32 @@ fun SlotPickerScreen(
                             CapsuleChip("俯视", selected = false, onClick = { camera.topDown() })
                             if (location.layers > 1) {
                                 CapsuleChip("分层展开", selected = exploded, onClick = { exploded = !exploded })
+                            }
+                        }
+                        if (location.layers > 1) {
+                            RowSeparator(startInset = 16.dp)
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                CapsuleChip(
+                                    text = appText("all_layers", language),
+                                    selected = focusLayer == null,
+                                    onClick = { focusLayer = null }
+                                )
+                                repeat(location.layers) { layer ->
+                                    CapsuleChip(
+                                        text = appFormat("layer_number", language, layer + 1),
+                                        selected = focusLayer == layer,
+                                        onClick = {
+                                            focusLayer = layer
+                                            exploded = true
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

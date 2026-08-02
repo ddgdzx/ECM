@@ -32,7 +32,7 @@ For the Chinese interface, see the [Chinese README](README.md).
 
 - Component records: type, model, value, package, quantity, warning level, unit, and notes.
 - Component photos: take or choose a photo, remove its background on device, and save it with the component.
-- Multi-slot storage: assign one component to several slots and locate it in the 3D storage view.
+- Multi-slot storage: assign one component to several slots and focus a layer to select slots hidden in the 3D view.
 - Quick consumption: a prominent home-screen action records quantity, purpose, or project, while preserving each usage entry.
 - Inventory overview: component count, total stock, slot usage, type distribution, low-stock items, and history.
 - NAS sync: keeps an offline local copy and synchronizes one personal library through HTTPS WebDAV.
@@ -98,8 +98,8 @@ Select the `ECM` scheme and a simulator or connected device in Xcode, then run t
 GitHub Actions validates Android and iOS independently. Create a version tag to obtain build artifacts from the corresponding workflow or release.
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.1.1
+git push origin v1.1.1
 ```
 
 ## Repository layout

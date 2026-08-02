@@ -109,7 +109,7 @@ struct SettingsScreen: View {
                 Section(AppCopy.text("about", language)) {
                     LabeledContent(
                         "Arxan ECM",
-                        value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1.0"
+                        value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1.1"
                     )
                     Text(AppCopy.text("local_data", language))
                         .font(AppleText.footnote)
