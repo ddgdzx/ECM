@@ -22,6 +22,7 @@ final class ComponentRecord {
     var row: Int = 0
     var col: Int = 0
     var slotsData: String = ""
+    var photoData: Data?
     var note: String = ""
     var updatedAt: Double = 0
 
@@ -39,6 +40,7 @@ final class ComponentRecord {
         row = e.row
         col = e.col
         slotsData = e.slotsData
+        photoData = e.photoData
         note = e.note
         updatedAt = e.updatedAt
     }
@@ -57,6 +59,7 @@ final class ComponentRecord {
         row = e.row
         col = e.col
         slotsData = e.slotsData
+        photoData = e.photoData
         note = e.note
         updatedAt = e.updatedAt
     }
@@ -66,7 +69,7 @@ final class ComponentRecord {
             id: cid, type: type, model: model, value: value, packageSpec: packageSpec,
             quantity: quantity, minQuantity: minQuantity, unit: unit,
             locationId: locationId, layer: layer, row: row, col: col, slotsData: slotsData,
-            note: note, updatedAt: updatedAt
+            photoData: photoData, note: note, updatedAt: updatedAt
         )
     }
 }

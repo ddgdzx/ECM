@@ -124,6 +124,7 @@ data class ComponentEntity(
     val row: Int = 0,
     val col: Int = 0,
     val slotsData: String = "",
+    val photoData: ByteArray? = null,
     val note: String = "",
     val updatedAt: Long = System.currentTimeMillis()
 ) {

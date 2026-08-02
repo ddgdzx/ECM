@@ -122,7 +122,7 @@ interface LocationDao {
 
 @Database(
     entities = [ComponentEntity::class, LocationEntity::class, ConsumptionEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class EcmDatabase : RoomDatabase() {
@@ -140,7 +140,7 @@ abstract class EcmDatabase : RoomDatabase() {
                 context.applicationContext,
                 EcmDatabase::class.java,
                 "ecm.db"
-            ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
         }
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -154,6 +154,12 @@ abstract class EcmDatabase : RoomDatabase() {
                 )
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_consumption_records_componentId ON consumption_records(componentId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_consumption_records_consumedAt ON consumption_records(consumedAt)")
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE components ADD COLUMN photoData BLOB")
             }
         }
     }

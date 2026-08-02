@@ -1,5 +1,17 @@
 package com.ecm.inventory.ui.screens
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -24,21 +36,31 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ecm.inventory.data.ComponentType
 import com.ecm.inventory.ui.EcmViewModel
+import com.ecm.inventory.ui.LocalAppLanguage
+import com.ecm.inventory.ui.appText
 import com.ecm.inventory.ui.components.CapsuleChip
 import com.ecm.inventory.ui.components.ComponentSymbol
+import com.ecm.inventory.ui.components.ComponentImageProcessor
 import com.ecm.inventory.ui.components.CupertinoNavBar
 import com.ecm.inventory.ui.components.CupertinoStepper
 import com.ecm.inventory.ui.components.FieldRow
@@ -50,6 +72,7 @@ import com.ecm.inventory.ui.components.RowSeparator
 import com.ecm.inventory.ui.components.SettingsRow
 import com.ecm.inventory.ui.theme.AppleText
 import com.ecm.inventory.ui.theme.AppleTheme
+import java.io.File
 
 @Composable
 fun ComponentEditScreen(
@@ -62,6 +85,28 @@ fun ComponentEditScreen(
     val draft by vm.componentDraft.collectAsState()
     val locations by vm.locations.collectAsState()
     val isNew = draft.id == 0L
+    val language = LocalAppLanguage.current
+    val context = LocalContext.current
+    var processingPhoto by remember { mutableStateOf(false) }
+    var photoMessage by remember { mutableStateOf<String?>(null) }
+    var cameraPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    fun processPhoto(bitmap: Bitmap) {
+        processingPhoto = true
+        photoMessage = null
+        ComponentImageProcessor.process(bitmap) { processed ->
+            vm.updateComponentDraft { it.copy(photoData = processed.png) }
+            processingPhoto = false
+            if (!processed.usedSubjectSegmentation) photoMessage = appText("photo_failed", language)
+        }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        if (saved) cameraPhotoUri?.let { decodePhoto(context, it) }?.let(::processPhoto)
+    }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { decodePhoto(context, it) }?.let(::processPhoto)
+    }
 
     val location = draft.locationId?.let { id -> locations.firstOrNull { it.id == id } }
     val locationText = when {
@@ -86,7 +131,7 @@ fun ComponentEditScreen(
                 NavTextButton(
                     text = "保存",
                     bold = true,
-                    enabled = draft.isValid,
+                    enabled = draft.isValid && !processingPhoto,
                     onClick = { vm.saveComponentDraft { onSaved() } }
                 )
             }
@@ -194,6 +239,71 @@ fun ComponentEditScreen(
             }
 
             item {
+                InsetSection(header = appText("component_photo", language), footer = appText("photo_hint", language)) {
+                    draft.photoData?.let { bytes ->
+                        remember(bytes) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }?.let { bitmap ->
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = appText("component_photo", language),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .padding(16.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            RowSeparator(startInset = 16.dp)
+                        }
+                    }
+                    if (processingPhoto) {
+                        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                            LinearProgressIndicator(Modifier.fillMaxWidth())
+                            Spacer(Modifier.height(8.dp))
+                            Text(appText("photo_processing", language), style = AppleText.footnote, color = colors.secondaryLabel)
+                        }
+                        RowSeparator(startInset = 16.dp)
+                    }
+                    photoMessage?.let { message ->
+                        Text(
+                            message,
+                            style = AppleText.footnote,
+                            color = colors.orange,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                        )
+                        RowSeparator(startInset = 16.dp)
+                    }
+                    SettingsRow(
+                        title = appText("take_photo", language),
+                        showChevron = true,
+                        onClick = {
+                            if (!processingPhoto) {
+                                cameraPhotoUri = createCaptureUri(context)
+                                cameraLauncher.launch(cameraPhotoUri!!)
+                            }
+                        }
+                    )
+                    RowSeparator(startInset = 16.dp)
+                    SettingsRow(
+                        title = appText("choose_photo", language),
+                        showChevron = true,
+                        onClick = {
+                            if (!processingPhoto) photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        }
+                    )
+                    if (draft.photoData != null) {
+                        RowSeparator(startInset = 16.dp)
+                        SettingsRow(
+                            title = appText("remove_photo", language),
+                            titleColor = colors.red,
+                            onClick = {
+                                vm.updateComponentDraft { it.copy(photoData = null) }
+                                photoMessage = null
+                            }
+                        )
+                    }
+                }
+            }
+
+            item {
                 InsetSection(header = "备注") {
                     MultilineFieldRow(
                         value = draft.note,
@@ -207,13 +317,30 @@ fun ComponentEditScreen(
                 Box(Modifier.padding(horizontal = 16.dp)) {
                     FilledActionButton(
                         text = if (isNew) "添加到库存" else "保存修改",
-                        enabled = draft.isValid,
+                        enabled = draft.isValid && !processingPhoto,
                         onClick = { vm.saveComponentDraft { onSaved() } }
                     )
                 }
             }
         }
     }
+}
+
+@Suppress("DEPRECATION")
+private fun decodePhoto(context: Context, uri: Uri): Bitmap? = runCatching {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, _, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            decoder.isMutableRequired = false
+        }
+    } else {
+        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+    }
+}.getOrNull()
+
+private fun createCaptureUri(context: Context): Uri {
+    val capture = File(context.cacheDir, "component-photo-${System.currentTimeMillis()}.jpg")
+    return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", capture)
 }
 
 @Composable

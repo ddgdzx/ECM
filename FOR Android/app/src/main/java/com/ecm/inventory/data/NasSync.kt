@@ -1,6 +1,7 @@
 package com.ecm.inventory.data
 
 import android.content.Context
+import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import org.json.JSONArray
@@ -16,7 +17,7 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
 data class EcmSnapshot(
-    val schemaVersion: Int = 1,
+    val schemaVersion: Int = 2,
     val modifiedAt: Long,
     val components: List<ComponentEntity>,
     val locations: List<LocationEntity>,
@@ -158,7 +159,9 @@ private fun ComponentEntity.toJson() = JSONObject().apply {
     put("id", id); put("type", type); put("model", model); put("value", value); put("packageSpec", packageSpec)
     put("quantity", quantity); put("minQuantity", minQuantity); put("unit", unit)
     put("locationId", locationId ?: JSONObject.NULL); put("layer", layer); put("row", row); put("col", col)
-    put("slotsData", slotsData); put("note", note); put("updatedAt", updatedAt)
+    put("slotsData", slotsData)
+    put("photoData", photoData?.let { Base64.encodeToString(it, Base64.NO_WRAP) } ?: JSONObject.NULL)
+    put("note", note); put("updatedAt", updatedAt)
 }
 
 private fun LocationEntity.toJson() = JSONObject().apply {
@@ -180,7 +183,9 @@ private fun snapshotFromJson(json: JSONObject) = EcmSnapshot(
         value = item.getString("value"), packageSpec = item.getString("packageSpec"), quantity = item.getInt("quantity"),
         minQuantity = item.getInt("minQuantity"), unit = item.getString("unit"),
         locationId = if (item.isNull("locationId")) null else item.getLong("locationId"), layer = item.getInt("layer"),
-        row = item.getInt("row"), col = item.getInt("col"), slotsData = item.getString("slotsData"),
+        row = item.getInt("row"), col = item.getInt("col"), slotsData = item.optString("slotsData", ""),
+        photoData = item.optString("photoData").takeIf { it.isNotBlank() }
+            ?.let { encoded -> runCatching { Base64.decode(encoded, Base64.DEFAULT) }.getOrNull() },
         note = item.getString("note"), updatedAt = item.getLong("updatedAt")
     ) },
     locations = json.getJSONArray("locations").objects().map { item -> LocationEntity(

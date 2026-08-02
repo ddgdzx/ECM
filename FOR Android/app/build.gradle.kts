@@ -6,8 +6,8 @@ plugins {
 }
 
 // CI 可通过环境变量覆盖版本号与签名信息；本地开发不设时走默认值 + debug 签名。
-val ciVersionCode = System.getenv("ECM_VERSION_CODE")?.toIntOrNull() ?: 1
-val ciVersionName = System.getenv("ECM_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0"
+val ciVersionCode = System.getenv("ECM_VERSION_CODE")?.toIntOrNull() ?: 2
+val ciVersionName = System.getenv("ECM_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.1.0"
 val releaseKeystore = System.getenv("ECM_KEYSTORE_FILE")?.takeIf { it.isNotBlank() }
 
 android {
@@ -53,6 +53,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -81,6 +82,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     ksp("androidx.room:room-compiler:2.6.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")

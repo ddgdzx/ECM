@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 struct EcmSnapshot: Codable {
-    var schemaVersion: Int = 1
+    var schemaVersion: Int = 2
     var modifiedAt: Double
     var components: [ComponentEntity]
     var locations: [LocationEntity]

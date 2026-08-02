@@ -1,5 +1,7 @@
 package com.ecm.inventory.ui.screens
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ecm.inventory.data.Slot
@@ -229,6 +233,20 @@ fun ComponentDetailScreen(
 
             item {
                 InsetSection(header = "详情") {
+                    component.photoData?.let { bytes ->
+                        remember(bytes) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }?.let { bitmap ->
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = component.displayTitle,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .padding(16.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            RowSeparator(startInset = 16.dp)
+                        }
+                    }
                     DetailRow("类型", component.typeEnum.label)
                     RowSeparator(startInset = 16.dp)
                     DetailRow("型号", component.model.ifBlank { "—" })

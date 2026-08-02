@@ -125,6 +125,14 @@ struct ComponentDetailScreen: View {
             }
 
             Section("详情") {
+                if let data = component.photoData, let image = UIImage(data: data) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, minHeight: 120, maxHeight: 240)
+                        .padding(.vertical, 10)
+                        .edgeToEdgeRow()
+                }
                 InfoRow(title: "类型", value: component.typeEnum.label)
                 InfoRow(title: "型号", value: component.model.ifBlank("—"))
                 InfoRow(title: "参数值", value: component.value.ifBlank("—"))

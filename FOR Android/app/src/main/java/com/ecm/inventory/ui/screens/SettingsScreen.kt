@@ -1,5 +1,6 @@
 package com.ecm.inventory.ui.screens
 
+import com.ecm.inventory.BuildConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -215,7 +216,7 @@ fun SettingsScreen(
 
             item {
                 InsetSection(header = appText("about", language), footer = appText("local_data", language)) {
-                    SettingsRow(title = "Arxan ECM", value = "1.0")
+                    SettingsRow(title = "Arxan ECM", value = BuildConfig.VERSION_NAME)
                 }
             }
         }

@@ -29,6 +29,7 @@ struct ComponentDraft: Equatable {
     var unit: String = "个"
     var locationId: Int64?
     var slots: [Slot] = []
+    var photoData: Data?
     var note: String = ""
 
     var isValid: Bool { !model.isBlank }
@@ -48,6 +49,7 @@ struct ComponentDraft: Equatable {
         e.row = slots.first?.row ?? 0
         e.col = slots.first?.col ?? 0
         e.slotsData = Slot.encodeMany(slots)
+        e.photoData = photoData
         e.note = note.trimmed
         return e
     }
@@ -56,7 +58,8 @@ struct ComponentDraft: Equatable {
         ComponentDraft(
             id: e.id, type: e.typeEnum, model: e.model, value: e.value,
             packageSpec: e.packageSpec, quantity: e.quantity, minQuantity: e.minQuantity,
-            unit: e.unit, locationId: e.locationId, slots: e.slots, note: e.note
+            unit: e.unit, locationId: e.locationId, slots: e.slots,
+            photoData: e.photoData, note: e.note
         )
     }
 }

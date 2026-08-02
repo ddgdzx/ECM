@@ -187,6 +187,7 @@ struct ComponentEntity: Identifiable, Hashable, Codable {
     var row: Int = 0
     var col: Int = 0
     var slotsData: String = ""
+    var photoData: Data?
     var note: String = ""
     var updatedAt: Double = Date().timeIntervalSince1970 * 1000
 

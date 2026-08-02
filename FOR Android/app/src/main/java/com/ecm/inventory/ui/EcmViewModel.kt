@@ -45,6 +45,7 @@ data class ComponentDraft(
     val unit: String = "个",
     val locationId: Long? = null,
     val slots: List<Slot> = emptyList(),
+    val photoData: ByteArray? = null,
     val note: String = ""
 ) {
     val isValid: Boolean get() = model.isNotBlank()
@@ -63,6 +64,7 @@ data class ComponentDraft(
         row = slots.firstOrNull()?.row ?: 0,
         col = slots.firstOrNull()?.col ?: 0,
         slotsData = Slot.encodeMany(slots),
+        photoData = photoData,
         note = note.trim()
     )
 
@@ -78,6 +80,7 @@ data class ComponentDraft(
             unit = e.unit,
             locationId = e.locationId,
             slots = e.slots,
+            photoData = e.photoData,
             note = e.note
         )
     }
